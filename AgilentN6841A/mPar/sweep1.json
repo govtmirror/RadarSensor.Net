@@ -1,0 +1,12 @@
+{
+	"RBW": 437500,
+	"fStart": 3450218750,
+	"fStop": 3650156250,
+	"n": 458,
+	"td": 5,
+	"Det": "Positive",
+	"win": "Gauss-top",
+	"ENBW": 962500,
+	"Atten": 0,
+	"VBW": -1
+}
