@@ -18,12 +18,45 @@ namespace Preselctor
    
         public void setRF1Source()
         {
-
+            bool success = webRelay.setRelayState(3, 0);
         }
 
         public void setRF2Source()
         {
+            bool success = webRelay.setRelayState(4, 0);
+        }
 
+        /// <summary>
+        /// Sets ND to 700 Mhz filter
+        /// </summary>
+        public void setRF1Nd()
+        {
+            powerOnNd();
+            bool sw2 = webRelay.setRelayState(2, 0);
+            bool sw3 = webRelay.setRelayState(3, 1);
+        }
+
+        /// <summary>
+        /// Sets ND to 3.5 Ghz filter 
+        /// </summary>
+        public void setRF2Nd()
+        {
+            powerOnNd();
+            bool sw2 = webRelay.setRelayState(2, 1);
+            bool sw4 = webRelay.setRelayState(4, 1);
+        }
+
+        /// <summary>
+        /// applies power to noise diode
+        /// </summary>
+        private void powerOnNd()
+        {
+            bool success = webRelay.setRelayState(1, 1);
+        }
+
+        private void powerOffNd()
+        {
+            bool sucess = webRelay.setRelayState(1, 0);
         }
 
         internal class X300
