@@ -1,0 +1,19 @@
+{
+  "antenna" : 1,
+  "attenuation" : 0,
+  "bw" : 1000000,
+  "det" : "Positive",
+  "dwellTime" : 0.1,
+  "enbw" : 962500,
+  "fStart" : 3450000000,
+  "fStop" : 3650000000,
+  "maxAtten" : 30,
+  "minAtten" : 0,
+  "n" : 458,
+  "preAmp" : 0,
+  "rmvAa" : 1,
+  "stepAtten" : 3,
+  "timeOverlap" : 0,
+  "VBW" : -1,
+  "window" : "Gauss-top"
+}

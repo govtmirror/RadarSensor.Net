@@ -8,10 +8,7 @@ namespace AgilentN6841A
     public class FFTParams
     {
         #region fields
-        // start frequency (Hz)
-        private double fStart;
-        // stop frequency (Hz)
-        private double fStop;
+        private MeasurmentParams measParams;
         // center frequency (Hz) for the ffts that comprise of the span
         private List<double> centerFrequencies 
             = new List<double>();
@@ -31,17 +28,6 @@ namespace AgilentN6841A
         // number of FFTs for detector (if detector = sample numFFts = 1)
         private int numFfts;
         // window: 'Hanning', 'Gauss-top', 'Flattop', 'Rectangular'
-        private string window;
-        // percentage of time-domain samples to overlap in adjacent FFTs {0,50}
-        private double timeOverlap;
-        // lag indicating portion of FFT bins to return {0: all, 1: exclude bins affected by anti-aliasing filter}
-        private int rmvAa;
-        // bandwidth (Hz)
-        private double bw;
-        private double antenna;
-        private double preAmp;
-        private double dwellTime;
-        private double attenuation;
         
         // Agilent sensor capabilites struct
         private AgSalLib.SensorCapabilities sensorCapabilities;
@@ -63,24 +49,14 @@ namespace AgilentN6841A
 
         public FFTParams() { }
 
-        public FFTParams(AgSalLib.SensorCapabilities c)
+        public FFTParams(AgSalLib.SensorCapabilities c,
+            MeasurmentParams m)
         {
             sensorCapabilities = c;
+            measParams = m;
         }
 
         #region Properties
-        public double Fstart
-        {
-            get { return fStart; }
-            set { fStart = value; }
-        }
-
-        public double Fstop
-        {
-            get { return fStop; }
-            set { fStop = value; }
-        }
-
         public List<double> CenterFrequencies
         {
             get { return centerFrequencies; }
@@ -89,87 +65,31 @@ namespace AgilentN6841A
         public double SampleRate
         {
             get { return sampleRate; }
-            set { sampleRate = value; }
         }
 
         public int NumFftBins
         {
             get { return numFftBins; }
-            set { numFftBins = value; }
         }
 
         public List<double> FrequencyList
         {
-            get { return frequencyList; }
-            set { frequencyList = value; }
+           get { return FrequencyList; }
         }
 
         public int NumValidFftBins
         {
-            get { return numValidFftBins; }
-            set { numValidFftBins = value; }
+            get { return NumValidFftBins; }
         }
 
         public int NumBinsLastSegment
         {
-            get { return numBinsLastSegment; }
-            set { numBinsLastSegment = value; }
+            get { return NumBinsLastSegment; }
         }
 
         public int NumFfts
         {
-            get { return numFfts; }
-            set { numFfts = value; }
-        }
-
-        public string Detector
-        {
-            get { return detector; }
-            set { detector = value; }
-        }
-
-        public string Window
-        {
-            get { return window; }
-            set { window = value; }
-        }
-
-        public double TimeOverlap
-        {
-            get { return timeOverlap; }
-            set { timeOverlap = value; }
-        }
-
-        public int RmvAa
-        {
-            get { return rmvAa; }
-            set { rmvAa = value; }
-        }
-
-        public double Attenuation
-        {
-            get { return attenuation; }
-            set { attenuation = value; }
-        }
-        public double Antenna       {
-            get { return antenna; }
-            set { antenna = value; }
-        }
-        public double Bw
-        {
-            get { return bw; }
-            set { bw = value; }
-        }
-        public double PreAmp
-        {
-            get { return preAmp; }
-            set { preAmp = value; }
-        }
-
-        public double DwellTime
-        {
-            get { return dwellTime; }
-            set { dwellTime = value; }
+            get { return numFftBins; }
         }
         #endregion
 
@@ -177,7 +97,7 @@ namespace AgilentN6841A
             double[] possibleSpans)
         {
             // calculate possible sample rates
-            double span = fStop - fStart;
+            double span = measParams.Fstop - measParams.Fstart;
             Console.WriteLine("span: " + span + "\n");
             if (span >= sensorCapabilities.maxSpan)
             {
@@ -206,12 +126,12 @@ namespace AgilentN6841A
 
             // calculate num of FFT binsdouble winValue;
             double winValue;
-            windows.TryGetValue(window, out winValue);
+            windows.TryGetValue(measParams.Window, out winValue);
             for (int i = 1; i < possibleFftBins.Length; i++)
             {
                 double possibleEnbw = (winValue * sampleRate) /
                     possibleFftBins[i];
-                if (possibleEnbw <= bw)
+                if (possibleEnbw <= measParams.Bw)
                 {
                     numFftBins = possibleFftBins[i];
                     Console.WriteLine("num fft bins: " + numFftBins);
@@ -247,7 +167,7 @@ namespace AgilentN6841A
             double numFullSegments = Math.Floor(span / segmentSpan);
 
             double nextCenterFrequency;  // center freq for next segment
-            nextCenterFrequency = fStart + binResolution / 2
+            nextCenterFrequency = measParams.Fstart + binResolution / 2
                 + binResolution * (numFftBins / 2 - idx1)
                 + binResolution * numValidFftBins * numFullSegments;
 
@@ -267,7 +187,7 @@ namespace AgilentN6841A
             // calculate center frequencies 
             for (int i = 0; i < numSegments; i++)
             {
-                centerFrequencies.Add(fStart + (binResolution / 2)
+                centerFrequencies.Add(measParams.Fstart + (binResolution / 2)
                     + (binResolution * (numFftBins / 2 - idx1))
                     + (binResolution * numValidFftBins * i));
             }
@@ -278,20 +198,20 @@ namespace AgilentN6841A
 
             for (int i = 0; i < numFrequencies; i++)
             {
-                frequencyList.Add(fStart + 
+                frequencyList.Add(measParams.Fstart + 
                     (binResolution / 2) * binResolution * i);
             }
 
             // specify number of FFTs to detect over
-            if (timeOverlap == 0)
+            if (measParams.TimeOverlap == 0)
             {
-                numFfts = (int)Math.Ceiling(dwellTime * sampleRate
+                numFfts = (int)Math.Ceiling(measParams.DwellTime * sampleRate
                     / numFftBins);
             } 
-            else if (timeOverlap == 50)
+            else if (measParams.TimeOverlap == 50)
             {
-                numFfts = (int)Math.Ceiling(2 * dwellTime * sampleRate
-                    / numFftBins);
+                numFfts = (int)Math.Ceiling(2 * measParams.DwellTime 
+                    * sampleRate / numFftBins);
             }
         }
 
