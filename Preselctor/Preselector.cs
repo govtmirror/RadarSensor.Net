@@ -5,7 +5,8 @@ using Logging;
 using System.Threading;
 using System.Text.RegularExpressions;
 using System.Xml;
-namespace Preselctor
+
+namespace SensorFrontEnd
 {
     public class Preselector
     {
@@ -16,57 +17,45 @@ namespace Preselctor
             webRelay = new X300(ip);
         }
 
-        public void setRF1Source()
+        /// <summary>
+        /// powers on noide diode
+        /// </summary>
+        public void powerOnNd()
         {
-            bool success = webRelay.setRelayState(3, 0);
-        }
-
-        public void setRF2Source()
-        {
-            bool success = webRelay.setRelayState(4, 0);
+            webRelay.setRelayState(1, 1);
         }
 
         /// <summary>
-        /// Sets ND to 700 Mhz filter
+        /// powers off noide diode
         /// </summary>
-        public void setRF1Nd()
+        public void powerOffNd()
         {
-            powerOnNd();
-            bool sw2 = webRelay.setRelayState(2, 0);
-            bool sw3 = webRelay.setRelayState(3, 1);
+            webRelay.setRelayState(1, 0);
         }
 
         /// <summary>
-        /// Sets ND to 3.5 Ghz filter 
+        /// set source to RF in 
         /// </summary>
-        public void setRF2Nd()
+        public void setRfIn()
         {
-            powerOnNd();
-            bool sw2 = webRelay.setRelayState(2, 1);
-            bool sw4 = webRelay.setRelayState(4, 1);
-        }
-
-        public void getTemp()
-        {
-            //return webRelay.getTemp();
+            webRelay.setRelayState(1, 0);
         }
 
         /// <summary>
-        /// applies power to noise diode
+        /// sets source to noide diode for calibration
         /// </summary>
-        private void powerOnNd()
+        public void setNdIn()
         {
-            bool success = webRelay.setRelayState(1, 1);
+            webRelay.setRelayState(1, 1);
         }
 
-        private void powerOffNd()
+        public float getTemp()
         {
-            bool sucess = webRelay.setRelayState(1, 0);
+            return webRelay.getTemp();
         }
 
         public static void Main(string[] args)
         {
-            Preselector p = new Preselector("10.6.6.22");
         }
     }
 
