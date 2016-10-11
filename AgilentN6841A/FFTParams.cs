@@ -2,6 +2,8 @@
 using System;
 using System.Linq;
 using System.Collections.Generic;
+using Logging;
+using JsonClasses;
 
 namespace AgilentN6841A
 {
@@ -15,26 +17,30 @@ namespace AgilentN6841A
         // sample rate (samples per second
         private double sampleRate;
         // number of fft bins
-        private int numFftBins;
+        private uint numFftBins;
         // List of frequencies (Hz)
         private List<double> frequencyList 
             = new List<double>();
         // number of valid bins in full segment (equals N if rmvAA=0)
-        private int numValidFftBins;
+        private uint numValidFftBins;
         // number of bins in last segment 
-        private int numBinsLastSegment;
+        private uint numBinsLastSegment;
         // detector (RMS, Positive, Sample)
         private string detector;
-        // number of FFTs for detector (if detector = sample numFFts = 1)
-        private int numFfts;
+        // number of FFTs for detector to average over
+        //(if detector = sample numFFts = 1)
+        private uint numFftsToAvg;
         // window: 'Hanning', 'Gauss-top', 'Flattop', 'Rectangular'
+        private uint numSegments;
+
+        private bool error = false;
         
         // Agilent sensor capabilites struct
         private AgSalLib.SensorCapabilities sensorCapabilities;
 
         // initialize array of powers of 2 for 
         // possible number of FFT bins in segment
-        private int[] possibleFftBins = { 8, 16, 32, 64, 128, 256, 512,
+        private uint[] possibleFftBins = { 8, 16, 32, 64, 128, 256, 512,
             1024,  2048, 4096, 8192, 16348 };
 
         private Dictionary<string, double> windows = new Dictionary<string, double>()
@@ -50,10 +56,12 @@ namespace AgilentN6841A
         public FFTParams() { }
 
         public FFTParams(AgSalLib.SensorCapabilities c,
-            MeasurmentParams m)
+            MeasurmentParams m, double[] possibleSampleRates,
+            double[] possibleSpans)
         {
             sensorCapabilities = c;
             measParams = m;
+            calcFftParameters(possibleSampleRates, possibleSpans);
         }
 
         #region Properties
@@ -67,7 +75,7 @@ namespace AgilentN6841A
             get { return sampleRate; }
         }
 
-        public int NumFftBins
+        public uint NumFftBins
         {
             get { return numFftBins; }
         }
@@ -77,23 +85,33 @@ namespace AgilentN6841A
            get { return FrequencyList; }
         }
 
-        public int NumValidFftBins
+        public uint NumValidFftBins
         {
             get { return NumValidFftBins; }
         }
 
-        public int NumBinsLastSegment
+        public uint NumBinsLastSegment
         {
             get { return NumBinsLastSegment; }
         }
 
-        public int NumFfts
+        public uint NumFftsToAvg
         {
-            get { return numFftBins; }
+            get { return numFftsToAvg; }
+        }
+
+        public uint NumSegments
+        {
+            get { return numSegments; }
+        }
+
+        public bool Error
+        {
+            get { return error; }
         }
         #endregion
 
-        public void calcFftParameters(double[] possibleSampleRates, 
+        private void calcFftParameters(double[] possibleSampleRates,
             double[] possibleSpans)
         {
             // calculate possible sample rates
@@ -124,7 +142,7 @@ namespace AgilentN6841A
             }
             Console.WriteLine("sampleRate: " + sampleRate);
 
-            // calculate num of FFT binsdouble winValue;
+            // calculate num of FFT bins
             double winValue;
             windows.TryGetValue(measParams.Window, out winValue);
             for (int i = 1; i < possibleFftBins.Length; i++)
@@ -144,6 +162,12 @@ namespace AgilentN6841A
                         possibleFftBins[possibleFftBins.Length - 1];
                 }
             }
+            if (numFftBins < sensorCapabilities.fftMinBlocksize ||
+                numFftBins > sensorCapabilities.fftMaxBlocksize)
+            {
+                Logger.logMessage("FFT block size is out of range");
+                error = true;
+            }
             // determine number of valid fft bins not affected by 
             // anti-aliasing filter
             double validSpanRaito;
@@ -158,7 +182,14 @@ namespace AgilentN6841A
             }
 
             numValidFftBins = floorEven(numFftBins / validSpanRaito);
-            int idx1; // index of first valid
+            if (numValidFftBins < sensorCapabilities.fftMinBlocksize ||
+                numValidFftBins > sensorCapabilities.fftMaxBlocksize)
+            {
+                Logger.logMessage("numValidFftBins is out of range");
+                error = true;
+            }
+
+            uint idx1; // index of first valid
             idx1 = (numFftBins - numValidFftBins) / 2 + 1;
 
             // calculate number of segments
@@ -171,16 +202,15 @@ namespace AgilentN6841A
                 + binResolution * (numFftBins / 2 - idx1)
                 + binResolution * numValidFftBins * numFullSegments;
 
-            int numSegments;
             if (nextCenterFrequency > sensorCapabilities.maxFrequency)
             {
-                numSegments = (int) numFullSegments;
+                numSegments = (uint) numFullSegments;
                 numBinsLastSegment = numValidFftBins;
             }
             else
             {
-                numSegments = (int)numFullSegments + 1;
-                numBinsLastSegment = (int)Math.Ceiling((span % segmentSpan)
+                numSegments = (uint)numFullSegments + 1;
+                numBinsLastSegment = (uint)Math.Ceiling((span % segmentSpan)
                     * numValidFftBins / segmentSpan);
             }
 
@@ -205,20 +235,20 @@ namespace AgilentN6841A
             // specify number of FFTs to detect over
             if (measParams.TimeOverlap == 0)
             {
-                numFfts = (int)Math.Ceiling(measParams.DwellTime * sampleRate
+                numFftsToAvg = (uint)Math.Ceiling(measParams.DwellTime * sampleRate
                     / numFftBins);
             } 
             else if (measParams.TimeOverlap == 50)
             {
-                numFfts = (int)Math.Ceiling(2 * measParams.DwellTime 
+                numFftsToAvg = (uint)Math.Ceiling(2 * measParams.DwellTime 
                     * sampleRate / numFftBins);
             }
         }
 
         // round towards nearest even integer 
-        private int floorEven(double num)
+        private uint floorEven(double num)
         {
-            int val = (int)Math.Floor(num);
+            uint val = (uint)Math.Floor(num);
             if (val  % 2 == 0)
             {
                 return val;
