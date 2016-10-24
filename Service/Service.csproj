@@ -39,6 +39,7 @@
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.ServiceProcess" />
+    <Reference Include="System.Web.Extensions" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
@@ -59,6 +60,10 @@
     <ProjectReference Include="..\AgilentN6841A\AgilentN6841A.csproj">
       <Project>{944800fd-863d-4ebc-a054-5ab7098008a8}</Project>
       <Name>AgilentN6841A</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\JsonClasses\JsonClasses.csproj">
+      <Project>{fbf0ff45-4734-4a3c-bdef-36d1be9b02ba}</Project>
+      <Name>JsonClasses</Name>
     </ProjectReference>
     <ProjectReference Include="..\Logging\Logging.csproj">
       <Project>{6e3a2d10-f2b3-45a8-ab5b-c86c79919047}</Project>

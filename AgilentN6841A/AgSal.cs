@@ -5548,7 +5548,7 @@ namespace AgSal
                 }
                 else
                 {
-                    sign = -1;  
+                    sign = -1;
                     val = Math.Abs(val);
                 }
                 timestampSeconds = (UInt32)Math.Floor(val);
@@ -5609,3 +5609,4 @@ namespace AgSal
         };
     }
 }
+

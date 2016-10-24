@@ -49,7 +49,33 @@ namespace SensorFrontEnd
             webRelay.setRelayState(1, 1);
         }
 
-        public float getTemp()
+        /// <summary>
+        /// Sets path to 3.5G filter
+        /// </summary>
+        /// <param name="filter"></param>
+        public void set3_5Filter()
+        {
+            webRelay.setRelayState(4, 0);
+        }
+
+        /// <summary>
+        /// Sets path to 3.0G filter
+        /// </summary>
+        /// <returns></returns>
+        public void set3_0Filter()
+        {
+            webRelay.setRelayState(4, 1);
+        }
+
+        /// <summary>
+        /// bypasses filters for 2.8G band
+        /// </summary>
+        public void setBypass()
+        {
+            webRelay.setRelayState(3, 1);
+        }
+    
+        public double getTemp()
         {
             return webRelay.getTemp();
         }
@@ -122,31 +148,31 @@ namespace SensorFrontEnd
         /// <summary>
         /// gets temperatur from preselctor probe at sensor1
         /// </summary>
-        /// <returns> current temperatre or float.MinValue if error 
+        /// <returns> current temperatre or double.MinValue if error 
         /// </returns>
-        internal float getTemp()
+        internal double getTemp()
         {
             string rqstUrl = ctlUrl;
             WebRequest wr = WebRequest.Create(rqstUrl);
             WebResponse response = wr.GetResponse();
             Stream responseStream = response.GetResponseStream();
             XmlTextReader xmlReader = new XmlTextReader(responseStream);
-            float temp;
+            double temp;
             if (xmlReader.ReadToFollowing("sensor1"))
             {
-                temp = xmlReader.ReadElementContentAsFloat();
+                temp = xmlReader.ReadElementContentAsDouble();
             }
             else
             {
                 Logger.logMessage("Invalid XML when reading " +
                     "temperature from sensor1");
-                temp = float.MinValue;
+                temp = double.MinValue;
             }
             return temp;
         }
 
         //fahrenheit to kelvin
-        private float f2k(float f)
+        private double f2k(double f)
         {
             return (f + 459.67f) * 5.0f / 9.0f;
         }

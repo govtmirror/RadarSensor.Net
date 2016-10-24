@@ -18,7 +18,7 @@ namespace AgilentN6841A
 
     public class SensorDriver
     {
-        // Agilent N6841A specefic
+        // Agilent N6841A specific
         public const int MAX_ATTEN = 30;
         public const int MIN_ATTEN = 0;
 
@@ -31,7 +31,7 @@ namespace AgilentN6841A
 
         private string smsHostName;
 
-        // possile sample rates for sensor
+        // possible sample rates for sensor
         private double[] possibleSampleRates;
         private double[] possibleSpans;
 
@@ -57,33 +57,44 @@ namespace AgilentN6841A
         /// </summary>
         /// <param name="band"> frequency band for measurement
         /// </param>
-        public void SensorPerfromSweep(Mband band, Preselector preselector,
-            ref List<float> powerList, ref List<float> attenList)
+        public void performCal(MeasurmentParams measParams, SysMessage sysMessage,
+            Preselector preselector)
         {
-            MeasurmentParams measParams;
+            List<double> powerListNdOn = new List<double>();
+            List<double> powerListNdOff = new List<double>();
 
-            // TODO add json files for other bands and include in check
-            if (band == Mband.SPN43)
+            List<double> atten = new List<double>();
+
+            if (measParams.Attenuation > MAX_ATTEN ||
+                measParams.Attenuation < MIN_ATTEN)
             {
-                string json = File.ReadAllText(@"C:\GitHub\RadarSensor\AgilentN6841A\mPar\3_5ghz.json");
-                measParams = 
-                    new System.Web.Script.Serialization.
-                    JavaScriptSerializer().Deserialize< MeasurmentParams>(
-                        json);
-                preselector.setRfIn();
+                Logger.logMessage("Attenuation out of range for sensor");
+                return;
             }
-            else //TODO
+            else
             {
-                string json = File.ReadAllText(@"C:\GitHub\RadarSensor\AgilentN6841A\mPar\3_5ghz.json");
-                measParams =
-                    new System.Web.Script.Serialization.
-                    JavaScriptSerializer().Deserialize<MeasurmentParams>(
-                        json);
-            }
-            
-            if (measParams.Attenuation != MAX_ATTEN)
-            {
+                measParams.MinAtten = measParams.Attenuation;
                 measParams.MaxAtten = measParams.Attenuation;
+            }
+
+            // set filter 
+            if (measParams.sys2Detect.ToLower().Equals("spn43"))
+            {
+                preselector.set3_5Filter();
+            }
+            else if (measParams.sys2Detect.ToLower().Equals("boatnav"))
+            {
+                preselector.set3_0Filter();
+            }
+            else if (measParams.sys2Detect.ToLower().Equals("ASR"))
+            {
+                preselector.setBypass();
+            }
+            else
+            {
+                Logger.logMessage("invalid sys2Detect " +
+                    "in Measurement parameters object");
+                return;
             }
 
             int iterations = 1 +
@@ -97,135 +108,149 @@ namespace AgilentN6841A
                 {
                     // TODO figure out best was to handle error 
                     // with FFT calculations
+                    Logger.logMessage("error calculating FFT Params");
                 }
-                detectSpan(measParams, fftParams, ref powerList);
-            }
+
+                // detect over span
+                for (int j = 0; j < fftParams.NumSegments; j++)
+                {
+                    double cf = fftParams.CenterFrequencies[j];
+                    if (cf < sensorCapabilities.minFrequency ||
+                        cf > sensorCapabilities.maxFrequency)
+                    {
+                        Logger.logMessage("center frequency is invalid: "
+                            + "\n" + "index " + j + " " + cf);
+                    }
+                    //perform sweep with ND off 
+                    preselector.powerOffNd();
+                    preselector.setRfIn();
+                    detectSegment(measParams, fftParams, powerListNdOff, cf);
+                    // perform sweep with ND on
+                    preselector.powerOnNd();
+                    preselector.setNdIn();
+                    detectSegment(measParams, fftParams, powerListNdOn, cf);
+                }
+
+                // Y-Factor Calibration
+                //Yfactor yFactorCal = new Yfactor(powerListNdOff,
+                //    powerListNdOff, measParams);
+                }
         }
         #endregion
 
-        #region prvate methods 
-        private void detectSpan(MeasurmentParams measParams, 
-            FFTParams fftParams, ref List<float> powerList)
+        #region private methods 
+        private void detectSegment(MeasurmentParams measParams, 
+            FFTParams fftParams, List<double> powerList,
+            double cf)
         {
             AgSalLib.SalError err;
 
-            // perfrom measurement on total number of segments
-            for (int i = 0; i < fftParams.NumSegments; i++)
+            AgSalLib.SweepParms sweepParams = new AgSalLib.SweepParms();
+            AgSalLib.FrequencySegment[] fs 
+                = new AgSalLib.FrequencySegment[1];
+
+            switch(measParams.Window)
             {
-                AgSalLib.SweepParms sweepParams = new AgSalLib.SweepParms();
-                AgSalLib.FrequencySegment[] fs 
-                    = new AgSalLib.FrequencySegment[1];
-
-                double cf = fftParams.CenterFrequencies[i];
-                if (cf < sensorCapabilities.minFrequency ||
-                    cf > sensorCapabilities.maxFrequency)
-                {
-                    Logger.logMessage("center frequency is invalid: "
-                        + "\n" + "index " + i + " " + cf);
-                }
-
-                switch(measParams.Window)
-                {
-                    case "Hanning": sweepParams.window =
-                            AgSalLib.WindowType.Window_hann;
-                        break;
-                    case "Gauss-Top": sweepParams.window =
-                            AgSalLib.WindowType.Window_gaussTop;
-                        break;
-                    case "Flattop": sweepParams.window =
-                            AgSalLib.WindowType.Window_flatTop;
-                        break;
-                    case "Rectangular": sweepParams.window =
-                            AgSalLib.WindowType.Window_uniform;
-                        break;
-                }
-                switch (measParams.TimeOverlap)
-                {
-                    case 0: fs[0].overlapType = 
-                            AgSalLib.OverlapType.OverlapType_on;
-                        break;
-                    default: fs[0].overlapType =
-                            AgSalLib.OverlapType.OverlapType_off;
-                        break;
-                }
-                switch (measParams.Detector)
-                {
-                    case "RMS": fs[0].averageType =
-                            AgSalLib.AverageType.Average_rms;
-                        break;
-                    case "Sample": fs[0].averageType =
-                            AgSalLib.AverageType.Average_off;
-                        break;
-                    case "Positive": fs[0].averageType =
-                            AgSalLib.AverageType.Average_peak;
-                        break;
-                }
-                switch (measParams.Antenna)
-                {
-                    case 0: fs[0].antenna = 
-                            AgSalLib.AntennaType.Antenna_Terminated2;
-                        break;
-                    case 1: fs[0].antenna =
-                            AgSalLib.AntennaType.Antenna_1;
-                        break;
-                    case 2: fs[0].antenna =
-                            AgSalLib.AntennaType.Antenna_2;
-                        break;
-                }
-                sweepParams.numSweeps = 1;
-                sweepParams.numSegments = 1;
-                sweepParams.monitorMode = AgSalLib.MonitorMode.MonitorMode_off;
-                sweepParams.monitorInterval = 0.5;
-
-                fs[0].numFftPoints = fftParams.NumFftBins;
-                fs[0].numAverages = fftParams.NumFftsToAvg;
-                fs[0].firstPoint = 0;
-                fs[0].numPoints = fs[0].numFftPoints;
-                fs[0].centerFrequency = cf;
-                fs[0].sampleRate = fftParams.SampleRate;
-                fs[0].preamp = measParams.PreAmp;
-                fs[0].attenuation = measParams.Antenna;
-
-                // Setup pacing
-                AgSalLib.salFlowControl flowControl = new AgSalLib.salFlowControl();
-                flowControl.pacingPolicy = 1; // wait when full 
-                flowControl.maxBacklogMessages = 50;
-
-                err = AgSalLib.salStartSweep2(out measHandle, sensorHandle,
-                    ref sweepParams, ref fs, ref flowControl, null);
-                if (SensorError(err, "salStartSweep"))
-                {
-                    return;
-                }
-
-                AgSalLib.SweepStatus status;
-                double elapsed;
-                AgSalLib.salGetSweepStatus2(measHandle, 0, out status, out elapsed);
-                // busy waiting
-                while (status == AgSalLib.SweepStatus.SweepStatus_running)
-                {
-                    AgSalLib.salGetSweepStatus2(measHandle, 0, out status, out elapsed);
-                }
-
-                // get data from sweep
-                AgSalLib.SegmentData segmentData = new AgSalLib.SegmentData();
-                float[] frequencyData = new float[fftParams.NumFftBins];
-
-                err = AgSalLib.salGetSegmentData(measHandle, 
-                    out segmentData, frequencyData, 
-                    (uint)frequencyData.Length * 4);
-
-                if (SensorError(err, "salGetSegmentData"))
-                {
-                    return;
-                }
-                if (segmentData.errorNum != AgSalLib.SalError.SAL_ERR_NONE)
-                {
-                    Logger.logMessage("Error in segment data header");
-                }
-                List<float> lst = frequencyData.OfType<float>().ToList();
-                powerList.AddRange(lst);
+                case "Hanning": sweepParams.window =
+                        AgSalLib.WindowType.Window_hann;
+                    break;
+                case "Gauss-Top": sweepParams.window =
+                        AgSalLib.WindowType.Window_gaussTop;
+                    break;
+                case "Flattop": sweepParams.window =
+                        AgSalLib.WindowType.Window_flatTop;
+                    break;
+                case "Rectangular": sweepParams.window =
+                        AgSalLib.WindowType.Window_uniform;
+                    break;
             }
+            switch (measParams.TimeOverlap)
+            {
+                case 0: fs[0].overlapType = 
+                        AgSalLib.OverlapType.OverlapType_on;
+                    break;
+                default: fs[0].overlapType =
+                        AgSalLib.OverlapType.OverlapType_off;
+                    break;
+            }
+            switch (measParams.Detector)
+            {
+                case "RMS": fs[0].averageType =
+                        AgSalLib.AverageType.Average_rms;
+                    break;
+                case "Sample": fs[0].averageType =
+                        AgSalLib.AverageType.Average_off;
+                    break;
+                case "Positive": fs[0].averageType =
+                        AgSalLib.AverageType.Average_peak;
+                    break;
+            }
+            switch (measParams.Antenna)
+            {
+                case 0: fs[0].antenna = 
+                        AgSalLib.AntennaType.Antenna_Terminated2;
+                    break;
+                case 1: fs[0].antenna =
+                        AgSalLib.AntennaType.Antenna_1;
+                    break;
+                case 2: fs[0].antenna =
+                        AgSalLib.AntennaType.Antenna_2;
+                    break;
+            }
+            sweepParams.numSweeps = 1;
+            sweepParams.numSegments = 1;
+            sweepParams.monitorMode = AgSalLib.MonitorMode.MonitorMode_off;
+            sweepParams.monitorInterval = 0.5f;
+
+            fs[0].numFftPoints = fftParams.NumFftBins;
+            fs[0].numAverages = fftParams.NumFftsToAvg;
+            fs[0].firstPoint = 0;
+            fs[0].numPoints = fs[0].numFftPoints;
+            fs[0].centerFrequency = cf;
+            fs[0].sampleRate = fftParams.SampleRate;
+            fs[0].preamp = measParams.PreAmp;
+            fs[0].attenuation = measParams.Antenna;
+
+            // Setup pacing
+            AgSalLib.salFlowControl flowControl = new AgSalLib.salFlowControl();
+            flowControl.pacingPolicy = 1; // wait when full 
+            flowControl.maxBacklogMessages = 50;
+
+            err = AgSalLib.salStartSweep2(out measHandle, sensorHandle,
+                ref sweepParams, ref fs, ref flowControl, null);
+            if (SensorError(err, "salStartSweep"))
+            {
+                return;
+            }
+
+            AgSalLib.SweepStatus status;
+            double elapsed;
+            AgSalLib.salGetSweepStatus2(measHandle, 0, out status, out elapsed);
+            // busy waiting
+            while (status == AgSalLib.SweepStatus.SweepStatus_running)
+            {
+                AgSalLib.salGetSweepStatus2(measHandle, 0, out status, out elapsed);
+            }
+
+            // get data from sweep
+            AgSalLib.SegmentData segmentData = new AgSalLib.SegmentData();
+            float[] frequencyData = new float[fftParams.NumFftBins];
+
+            err = AgSalLib.salGetSegmentData(measHandle, 
+                out segmentData, frequencyData, 
+                (uint)frequencyData.Length * 4);
+
+            if (SensorError(err, "salGetSegmentData"))
+            {
+                return;
+            }
+            if (segmentData.errorNum != AgSalLib.SalError.SAL_ERR_NONE)
+            {
+                Logger.logMessage("Error in segment data header");
+            }
+            // cast frequencyData to an array of doubles
+            var freqData = Array.ConvertAll(frequencyData, item => (double)item);
+            arrayToList<double>(freqData, powerList);
         }
 
         // Calculates sample rates for Agilent sensor 
@@ -241,7 +266,7 @@ namespace AgilentN6841A
             possibleSpans[0] = sensorCapabilities.maxSpan;
 
             for (int i = 1; i < maxDecimations + 1; i++)
-            {
+           {
                 possibleSampleRates[i] = (possibleSampleRates[i - 1] / 2);
                 possibleSpans[i] = possibleSampleRates[i] /
                         sensorCapabilities.sampleRateToSpanRatio;        
@@ -274,6 +299,14 @@ namespace AgilentN6841A
                 return true;
             }
             return false;
+        }
+
+        private void arrayToList<T>(T[] array, List<T> list)
+        {
+            for (int i = 0; i <array.Length; i++)
+            {
+                list.Add(array[i]);
+            }
         }
         #endregion
 

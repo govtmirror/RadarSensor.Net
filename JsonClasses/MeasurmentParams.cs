@@ -7,7 +7,8 @@
         // stop frequency (Hz)
         private double fStop;
         private double bw; // bandwidth (hz)
-        private float dwellTime; // (seconds)
+        private double enbw;
+        private double dwellTime; // (seconds)
         // percentage of time-domain samples to overlap in adjacent FFTs {0,50}
         private int timeOverlap;
         // lag indicating portion of FFT bins to return 
@@ -19,6 +20,7 @@
         private int minAtten;
         private int maxAtten;
         private int stepAtten;
+        private int n;
 
         private string window;
         private string detector;
@@ -83,7 +85,7 @@
             set { preAmp = value; }
         }
 
-        public float DwellTime
+        public double DwellTime
         {
             get { return dwellTime; }
             set { dwellTime = value; }
@@ -112,6 +114,20 @@
             get { return stepAtten; }
             set { stepAtten = value; }
         }
+
+        public int N
+        {
+            get { return n; }
+            set { n = value; }
+        }
+
+        public double Enbw
+        {
+            get;
+            set;
+        }
+
+        public string sys2Detect { get; set; }
         #endregion
 
         public static void Main(string[] args) { }

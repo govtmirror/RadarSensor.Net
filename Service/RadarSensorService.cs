@@ -5,6 +5,10 @@ using System.ServiceProcess;
 using System.Threading;
 using System.Collections.Generic;
 using System;
+using JsonClasses;
+using System.Web;
+using System.IO;
+using System.Timers;
 
 namespace Service
 {
@@ -14,6 +18,22 @@ namespace Service
         /// Required designer variable.
         /// </summary>
         private System.ComponentModel.IContainer components = null;
+        public const int SECONDS_IN_HOUR = 3600;
+
+        internal class TimedCount
+        {
+            public DateTime start = DateTime.Now;
+
+            internal void reset()
+            {
+                start = DateTime.Now;
+            }
+            internal double elaspedTime()
+            {
+                TimeSpan et = DateTime.Now.Subtract(start);
+                return et.TotalSeconds;
+            }
+        }
 
         public RadarSensorService()
         {
@@ -43,16 +63,36 @@ namespace Service
         {
             SensorDriver sensor = new SensorDriver("10.6.6.14");
             Preselector preselector  = new Preselector("10.6.6.22");
+            TimedCount timer = new TimedCount();
 
-            List<float> powerList = new List<float>();
-            List<float> attenList = new List<float>();
+            while (true)
+            {
+                if (timer.elaspedTime() >= SECONDS_IN_HOUR)
+                {
+                    timer.reset();
+                    //Perform calibration
+                }
+                else
+                {
+                    // perform measurement
+                }
 
-            // perform sweep 
-            sensor.SensorPerfromSweep(AgilentN6841A.Mband.SPN43, 
-                preselector, ref powerList, ref attenList);
-            Console.ReadLine();
+                // get measurement parameters objects
+                MeasurmentParams measParams;
+                string json = File.ReadAllText(@"C:\GitHub\RadarSensor\AgilentN6841A\mPar\spn43Cal.json");
+                measParams =
+                    new System.Web.Script.Serialization.
+                    JavaScriptSerializer().Deserialize<MeasurmentParams>(
+                        json);
 
-            // create JSON metadata file 
+                SysMessage sysMessage = new SysMessage();
+                sysMessage.cal.Temp = preselector.getTemp();
+
+                // perform calibration
+                sensor.performCal(measParams, sysMessage, preselector);
+
+                Console.ReadLine();
+            }
         }
 
         /// <summary>

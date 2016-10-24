@@ -123,8 +123,8 @@ namespace AgilentN6841A
             }
             else
             {
-                // find last element that is greather than the span
-                // list is already sorted in decending order
+                // find last element that is greater than the span
+                // list is already sorted in descending order
                 for (int i = 1; i < possibleSpans.Length; i++)
                 {
                     if (possibleSpans[i] < span)
@@ -140,7 +140,6 @@ namespace AgilentN6841A
                     }
                 }
             }
-            Console.WriteLine("sampleRate: " + sampleRate);
 
             // calculate num of FFT bins
             double winValue;
@@ -171,6 +170,7 @@ namespace AgilentN6841A
             // determine number of valid fft bins not affected by 
             // anti-aliasing filter
             double validSpanRaito;
+
             if (sampleRate == sensorCapabilities.maxSampleRate)
             {
                 validSpanRaito = sensorCapabilities.maxSampleRate /
