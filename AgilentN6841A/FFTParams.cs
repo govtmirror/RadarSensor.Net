@@ -10,7 +10,7 @@ namespace AgilentN6841A
     public class FFTParams
     {
         #region fields
-        private MeasurmentParams measParams;
+        private SweepParams measParams;
         // center frequency (Hz) for the ffts that comprise of the span
         private List<double> centerFrequencies 
             = new List<double>();
@@ -56,7 +56,7 @@ namespace AgilentN6841A
         public FFTParams() { }
 
         public FFTParams(AgSalLib.SensorCapabilities c,
-            MeasurmentParams m, double[] possibleSampleRates,
+            SweepParams m, double[] possibleSampleRates,
             double[] possibleSpans)
         {
             sensorCapabilities = c;
@@ -82,17 +82,17 @@ namespace AgilentN6841A
 
         public List<double> FrequencyList
         {
-           get { return FrequencyList; }
+           get { return frequencyList; }
         }
 
         public uint NumValidFftBins
         {
-            get { return NumValidFftBins; }
+            get { return numValidFftBins; }
         }
 
         public uint NumBinsLastSegment
         {
-            get { return NumBinsLastSegment; }
+            get { return numBinsLastSegment; }
         }
 
         public uint NumFftsToAvg
@@ -116,7 +116,6 @@ namespace AgilentN6841A
         {
             // calculate possible sample rates
             double span = measParams.Fstop - measParams.Fstart;
-            Console.WriteLine("span: " + span + "\n");
             if (span >= sensorCapabilities.maxSpan)
             {
                 sampleRate = possibleSampleRates.Max();
@@ -151,7 +150,6 @@ namespace AgilentN6841A
                 if (possibleEnbw <= measParams.Bw)
                 {
                     numFftBins = possibleFftBins[i];
-                    Console.WriteLine("num fft bins: " + numFftBins);
                     break;
                 }
                 else if (i == possibleFftBins.Length - 1)
@@ -224,17 +222,17 @@ namespace AgilentN6841A
 
             // calculate frequencies for the span 
             double numFrequencies = (numValidFftBins * numFullSegments +
-                numBinsLastSegment * (numSegments - numFullSegments) - 1);
+                numBinsLastSegment * (numSegments - numFullSegments));
 
             for (int i = 0; i < numFrequencies; i++)
             {
                 frequencyList.Add(measParams.Fstart + 
-                    (binResolution / 2) * binResolution * i);
+                    (binResolution / 2) + binResolution * i);
             }
 
             // specify number of FFTs to detect over
             if (measParams.TimeOverlap == 0)
-            {
+                {
                 numFftsToAvg = (uint)Math.Ceiling(measParams.DwellTime * sampleRate
                     / numFftBins);
             } 

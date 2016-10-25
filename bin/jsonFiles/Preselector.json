@@ -1,0 +1,10 @@
+{
+	"lowFreqPassband": 3430000000,
+	"highFreqPassBand": 3670000000,
+	"lowFreqStopband": 3390000000,
+	"highFreqStopband": 3710000000,
+	"excessNoiseRatio": 14.46,
+	"lnaNoiseFigure": 1.34,
+	"lnaGain": 43.29,
+	"lnaMaxPower": 27.29
+}

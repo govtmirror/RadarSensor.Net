@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Web;
+using General;
 
 namespace JsonClasses
 {
@@ -7,26 +8,27 @@ namespace JsonClasses
     {
         public Message() { }
         
-        public string Ver
+        public string version
         {
             get; set;
         }
 
-        public string Type
+        public string messageType
         {
             get; set;
         }
 
-        public string SensorID
+        public string sensorId
+        {
+            get;
+            set;
+        }
+
+        public long sensorKey
         {
             get; set;
         }
 
-        public long SensorKey
-        {
-            get; set;
-        }
-
-        public long t { get; set; }
+        public long? time { get; set; }
     }
 }

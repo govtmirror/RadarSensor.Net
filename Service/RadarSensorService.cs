@@ -9,6 +9,7 @@ using JsonClasses;
 using System.Web;
 using System.IO;
 using System.Timers;
+using General;
 
 namespace Service
 {
@@ -61,8 +62,8 @@ namespace Service
         /// </summary>
         private void mainThread()
         {
-            SensorDriver sensor = new SensorDriver("10.6.6.14");
-            Preselector preselector  = new Preselector("10.6.6.22");
+            SensorDriver sensor = new SensorDriver();
+            Preselector preselector  = new Preselector(Constants.PRESELECTOR_IP);
             TimedCount timer = new TimedCount();
 
             while (true)
@@ -77,16 +78,27 @@ namespace Service
                     // perform measurement
                 }
 
-                // get measurement parameters objects
-                MeasurmentParams measParams;
-                string json = File.ReadAllText(@"C:\GitHub\RadarSensor\AgilentN6841A\mPar\spn43Cal.json");
+                // read in parameters for calibration
+                SweepParams measParams;
+                string json = File.ReadAllText(Constants.Spn43CalSweepParamsFile);
                 measParams =
                     new System.Web.Script.Serialization.
-                    JavaScriptSerializer().Deserialize<MeasurmentParams>(
+                    JavaScriptSerializer().Deserialize<SweepParams>(
                         json);
 
-                SysMessage sysMessage = new SysMessage();
-                sysMessage.cal.Temp = preselector.getTemp();
+                JsonClasses.SysMessage sysMessage = new SysMessage();
+
+                // create and write location message 
+                string locString = File.ReadAllText(Constants.LocMessage);
+                LocMessage locMessage = new System.Web.Script.Serialization.
+                JavaScriptSerializer().Deserialize<LocMessage>(locString);
+                locMessage.sensorId = Constants.SENSOR_HOST_NAME;
+                // get epoch time 
+                TimeSpan epochTime =
+                DateTime.UtcNow.Subtract(new DateTime(1970, 1, 1));
+                locMessage.time = (long)epochTime.TotalSeconds;
+
+                sysMessage.calibration.temp = preselector.getTemp();
 
                 // perform calibration
                 sensor.performCal(measParams, sysMessage, preselector);
@@ -98,7 +110,8 @@ namespace Service
         /// <summary>
         /// Clean up any resources being used.
         /// </summary>
-        /// <param name="disposing">true if managed resources should be disposed; otherwise, false.</param>
+        /// <param name="disposing">true if managed resources should be disposed; 
+        /// otherwise, false.</param>
         protected override void Dispose(bool disposing)
         {
             if (disposing && (components != null))

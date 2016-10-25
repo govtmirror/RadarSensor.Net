@@ -1,0 +1,13 @@
+{
+	"version": "1.0.16",
+	"messageType": "Loc",
+	"sensorId": null,
+	"sensorKey": "01",
+	"time": null,
+    "mobility": "Stationary",
+    "environment":  "OutDoor",
+	"latitude": 84,
+	"longitude": 50,
+	"altitude": 5450,
+	"timeZone": "America/New_York"
+}

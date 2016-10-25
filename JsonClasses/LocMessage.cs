@@ -5,29 +5,37 @@ namespace JsonClasses
 {
     public class LocMessage : Message
     {
-        public LocMessage() { }
+        public LocMessage() : base()
+        {
+      
+        }
 
-        public string Mobility
+        public string mobility
         {
             get; set;
         }
 
-        public double Lat
+        public string environmnet
         {
             get; set;
         }
 
-        public double Lon
+        public double latitude
         {
             get; set;
         }
 
-        public int Alt
+        public double longitude
         {
             get; set;
         }
 
-        public string TimeZone
+        public int altitude
+        {
+            get; set;
+        }
+
+        public string timeZone
         {
             get; set;
         }

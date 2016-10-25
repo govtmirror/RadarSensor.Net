@@ -1,0 +1,7 @@
+{
+	"model": "Agilent N6841A",
+	"lowFrequency": 20000000,
+	"highFrequency": 6000000000,
+	"noiseFigure": 20,
+	"maxPower": 20
+}

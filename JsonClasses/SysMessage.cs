@@ -1,8 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.IO;
+using System.Web;
+using General;
 
 namespace JsonClasses
 {
@@ -10,72 +9,81 @@ namespace JsonClasses
     {
         public SysMessage()
         {
-            cal = new Cal();
-            antenna = new Antenna();
-            preselector = new Preselector();
-            cotsSensor = new COTSsensor();
-            mPar = new Mpar();
+            string antennaString =
+                File.ReadAllText(Constants.AntennaFile);
+            antenna = new System.Web.Script.Serialization.
+            JavaScriptSerializer().Deserialize<Antenna>(antennaString);
+
+            string preselectorString =
+                File.ReadAllText(Constants.PreselectorFile);
+            preselector = new System.Web.Script.Serialization.
+            JavaScriptSerializer().Deserialize<Preselector>(preselectorString);
+
+            string sensorString = 
+                File.ReadAllText(Constants.CotsSensorFile);
+            cotsSensor = new System.Web.Script.Serialization.
+            JavaScriptSerializer().Deserialize<CotsSensor>(sensorString);
+
+            calibration = new Calibration();
+
+            messageType = "Sys";
         }
 
-        // measurement parameters 
-        public Mpar mPar;
         public Antenna antenna;
         public Preselector preselector;
-        public COTSsensor cotsSensor;
-        public Cal cal;
+        public CotsSensor cotsSensor;
+        public Calibration calibration;
 
         // raw measured data with noise diode on
-        public double[] wOn { get; set; }
+        public double[] noiseSourceOnPowers { get; set; }
 
         // raw measured data with noise diode off
-        public double[] wOff { get; set; }
+        public double[] noiseSourceOffPowers { get; set; }
 
         // noise figure referenced to input of preselector
-        public double fn { get; set; }
+        public double? noiseFigure { get; set; }
 
         // system gain referenced to input of preselector
-        public double g { get; set; }
-
+        public double? gain { get; set; }
 
         public class Antenna
         {
             // data that describes antenna
             public Antenna() { }
 
-            public string Model { get; set; }
+            public string model { get; set; }
 
             // low frequency of operational range Hz
-            public double fLow { get; set; }
+            public double lowFrequency { get; set; }
 
             // high frequency of operational range Hz
-            public double fHigh { get; set; }
+            public double highFrequency { get; set; }
 
             // antenna gain dBi
-            public double g { get; set; }
+            public double gain { get; set; }
 
             // horizontal 3-db beamwidth (degrees)
-            public double bwH { get; set; }
+            public double horizontalBeamWidth { get; set; }
 
             // vertical 3-db beamwidth (degrees)
-            public double hwV { get; set; }
+            public double verticalBeamWidth { get; set; }
 
             //  direction of main beam in azimuthal plane (degrees)
-            public double AZ { get; set; }
+            public double azmithBeamDir { get; set; }
 
             // direction of main beam in elevation plane
-            public double EL { get; set; }
+            public double elevationBeamDir { get; set; }
 
             // polarization
-            public string Pol { get; set; }
+            public string polarization { get; set; }
 
             // Cress-polarization discrimination (dB)
-            public double XSD { get; set; }
+            public double crossPolarDiscrimination { get; set; }
 
             // voltage standing wave ratio
-            public double VSWR { get; set; }
+            public double voltageStandingWaveRatio { get; set; }
 
-            // cable loss
-            public double lCable { get; set; }
+            public double cableLoss { get; set; }
         }
 
         // data that describes RF hardware components
@@ -84,70 +92,75 @@ namespace JsonClasses
             public Preselector() { }
 
             // low frequency (Hz) of filter 1-db passband
-            public double fLowPassBPF { get; set; }
+            public double lowFreqPassband { get; set; }
 
             // high frequency (Hz) of filter 1-db passband
-            public double fHighPassBPF { get; set; }
+            public double highFreqPassband{ get; set; }
 
             // low frequency stop band (Hz)
-            public double fLowStopBPF { get; set; }
+            public double lowFreqStopband { get; set; }
 
             // high freqency stop band
-            public double fHighStopBPF { get; set; }
+            public double highFreqStopband { get; set; }
 
             // noise figure of LNA (dB)
-            public double fnLNA { get; set; }
+            public double lnaNoiseFigure { get; set; }
 
             // gain of LNA 
-            public double gLNA { get; set; }
+            public double lnaGain { get; set; }
 
             // max power at output of LNA
-            public double pMaxLNA { get; set; }
+            public double lnamaxPowerOut { get; set; }
 
             // excess noise ratio of noise diode for y-factor calibrations
-            public double enrND { get; set; }
+            public double excessNoiseRatio { get; set; }
         }
 
-        public class COTSsensor
+        public class CotsSensor
         {
-            public COTSsensor() { }
+            public CotsSensor() { }
 
-            public string Model { get; set; }
+            public string model { get; set; }
 
             // low frequency of operational range (Hz)
-            public double fLow { get; set; }
+            public double lowFrequency { get; set; }
 
             // high frequency of operational range (Hz)
-            public double fHigh { get; set; }
+            public double highFrequency { get; set; }
 
             // noise figure 
-            public double fn { get; set; }
+            public double noiseFigure { get; set; }
 
            // maximum power (dBm)
-           public double pMax { get; set; }
+           public double maxPower { get; set; }
         }
 
-        public class Cal
+        public class Calibration
         {
-            public Cal() { }
+            public Calibration() 
+            { 
+                measurementParameters = new MeasurementParameters();
+            }
 
-            public int CalsPerHour { get; set; }
+            public MeasurementParameters measurementParameters;
 
-            public double Temp { get; set; }
+            public int? calsPerHour { get; set; }
 
-            public string mType { get; set; }
+            public double? temp { get; set; }
 
-            // number of measurments per hour
-            public int nM { get; set; }
+            public string measurementType { get; set; }
 
-            public string Processed { get; set; }
+            // number of measurments per calibration
+            public int? numOfMeasurementsPerCal { get; set; }
 
-            public string DataTyple { get; set; }
+            public string processed { get; set; }
 
-            public string ByteOrder { get; set; }
+            public string dataType { get; set; }
+
+            public string byteOrder { get; set; }
 
             // compression of data 
-            public string Compression { get; set; }
+            public string compression { get; set; }
         }
     }
 }

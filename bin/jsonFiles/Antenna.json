@@ -1,0 +1,14 @@
+{
+    "model": "Cobham OA2-0.3-10.0v/1505/Omni/VPOL",
+    "lowfrequency": 300000000,
+    "highFrequency": 1e+10,
+    "gain": 1.5,
+    "horitontalBeamWidth": 360,
+    "verticalBeamWidth": 93.2,
+    "azmithBeamDir": 90,
+    "elevationBeamDir": 32,
+    "polarization": "VL",
+    "crossPolarDiscrimination": 19.9,
+    "voltageStandingWaveRatio": -1,
+    "cableLoss": 0.8
+}

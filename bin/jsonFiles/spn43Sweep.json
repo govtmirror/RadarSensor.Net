@@ -1,0 +1,20 @@
+{
+  "mType": "Swept-frequency",
+  "sys2Detect": "SPN43",  
+  "Antenna": 1,
+  "Attenuation": 0,
+  "Bw": 1000000,
+  "Detector": "Positive",
+  "DwellTime": 5,
+  "Fstart": 3450000000,
+  "Fstop": 3650000000,
+  "MaxAtten": 30,
+  "MinAtten": 0,
+  "PreAmp": 0,
+  "RmvAa": 1,
+  "StepAtten": 3,
+  "TimeOverlap": 0,
+  "Window": "Gauss-top",
+  "ENBW": 0,
+  "n": 0
+}

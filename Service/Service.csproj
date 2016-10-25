@@ -18,7 +18,7 @@
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
-    <OutputPath>bin\Debug\</OutputPath>
+    <OutputPath>..\bin\</OutputPath>
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
@@ -65,13 +65,13 @@
       <Project>{fbf0ff45-4734-4a3c-bdef-36d1be9b02ba}</Project>
       <Name>JsonClasses</Name>
     </ProjectReference>
-    <ProjectReference Include="..\Logging\Logging.csproj">
+    <ProjectReference Include="..\Logging\General.csproj">
       <Project>{6e3a2d10-f2b3-45a8-ab5b-c86c79919047}</Project>
-      <Name>Logging</Name>
+      <Name>General</Name>
     </ProjectReference>
-    <ProjectReference Include="..\Preselctor\Preselctor.csproj">
+    <ProjectReference Include="..\Preselctor\Preselector.csproj">
       <Project>{f43826cd-0717-4674-83b9-2423b6464836}</Project>
-      <Name>Preselctor</Name>
+      <Name>Preselector</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

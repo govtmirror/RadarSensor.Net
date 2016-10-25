@@ -11,6 +11,9 @@ namespace SensorFrontEnd
     public class Preselector
     {
         private X300 webRelay;
+        /// <summary>
+        /// excess noiose ratio of noise diode in Preselector
+        /// </summary>
 
         public Preselector(string ip)
         {

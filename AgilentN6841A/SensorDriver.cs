@@ -2,6 +2,7 @@
 using System.IO;
 using JsonClasses;
 using AgSal;
+using General;
 using Logging;
 using System.Collections.Generic;
 using System.Linq;
@@ -30,17 +31,36 @@ namespace AgilentN6841A
         private AgSalLib.SensorCapabilities sensorCapabilities;
 
         private string smsHostName;
+        private string sensorName;
 
         // possible sample rates for sensor
         private double[] possibleSampleRates;
         private double[] possibleSpans;
 
+        #region Poperties
+        public AgSalLib.SensorCapabilities SensorCapabilities
+        {
+            get { return sensorCapabilities; }
+        }
+
+        public double[] PossibleSampleRates
+        {
+            get { return possibleSampleRates; }
+        }
+
+        public double[] PossibleSpans
+        {
+            get { return possibleSpans; }
+        }
+        #endregion 
         /// <summary>
         /// 
         /// </summary>
         /// <param name="ip">ip address in dotted decimal</param>
-        public SensorDriver(String ip)
+        public SensorDriver()
         {
+            sensorName = Constants.SENSOR_HOST_NAME;
+
             bool connectionPassed = ConnectSensor();
             if (!connectionPassed)
             {
@@ -57,13 +77,13 @@ namespace AgilentN6841A
         /// </summary>
         /// <param name="band"> frequency band for measurement
         /// </param>
-        public void performCal(MeasurmentParams measParams, SysMessage sysMessage,
+        public void performCal(SweepParams measParams, SysMessage sysMessage,
             Preselector preselector)
         {
             List<double> powerListNdOn = new List<double>();
             List<double> powerListNdOff = new List<double>();
 
-            List<double> atten = new List<double>();
+            double attenuaiton; 
 
             if (measParams.Attenuation > MAX_ATTEN ||
                 measParams.Attenuation < MIN_ATTEN)
@@ -97,49 +117,61 @@ namespace AgilentN6841A
                 return;
             }
 
-            int iterations = 1 +
-                (measParams.MaxAtten - measParams.Attenuation)
-                / measParams.StepAtten;
-            for (int i = 0; i < iterations; i++)
+            // perfrom cal for number of attenuations
+            // IS THIS necessary???
+            //int iterations = 1 +
+            //    (measParams.MaxAtten - measParams.Attenuation)
+            //    / measParams.StepAtten;
+            //for (int i = 0; i < iterations; i++)
+            //{
+            FFTParams fftParams = new FFTParams(sensorCapabilities,
+                measParams, possibleSampleRates, possibleSpans);
+            if (fftParams.Error)
             {
-                FFTParams fftParams = new FFTParams(sensorCapabilities,
-                    measParams, possibleSampleRates, possibleSpans);
-                if (fftParams.Error)
-                {
-                    // TODO figure out best was to handle error 
-                    // with FFT calculations
-                    Logger.logMessage("error calculating FFT Params");
-                }
+                // TODO figure out best was to handle error 
+                // with FFT calculations
+                Logger.logMessage("error calculating FFT Params");
+            }
 
-                // detect over span
-                for (int j = 0; j < fftParams.NumSegments; j++)
-                {
-                    double cf = fftParams.CenterFrequencies[j];
-                    if (cf < sensorCapabilities.minFrequency ||
-                        cf > sensorCapabilities.maxFrequency)
-                    {
-                        Logger.logMessage("center frequency is invalid: "
-                            + "\n" + "index " + j + " " + cf);
-                    }
-                    //perform sweep with ND off 
-                    preselector.powerOffNd();
-                    preselector.setRfIn();
-                    detectSegment(measParams, fftParams, powerListNdOff, cf);
-                    // perform sweep with ND on
-                    preselector.powerOnNd();
-                    preselector.setNdIn();
-                    detectSegment(measParams, fftParams, powerListNdOn, cf);
-                }
+            // populate SysMessage FFT values
+            sysMessage.calibration.measurementParameters.resolutionBw =
+                fftParams.SampleRate / fftParams.NumFftBins;
+            sysMessage.calibration.measurementParameters.startFrequency =
+                fftParams.FrequencyList[0];
+            sysMessage.calibration.measurementParameters.stopFrequency =
+                fftParams.FrequencyList[fftParams.FrequencyList.Count - 1];
+            sysMessage.calibration.measurementParameters.numOfFrequenciesInSweep =
+                fftParams.FrequencyList.Count;
 
-                // Y-Factor Calibration
-                //Yfactor yFactorCal = new Yfactor(powerListNdOff,
-                //    powerListNdOff, measParams);
+            // detect over span
+            for (int j = 0; j < fftParams.NumSegments; j++)
+            {
+                double cf = fftParams.CenterFrequencies[j];
+                if (cf < sensorCapabilities.minFrequency ||
+                    cf > sensorCapabilities.maxFrequency)
+                {
+                    Logger.logMessage("center frequency is invalid: "
+                        + "\n" + "index " + j + " " + cf);
                 }
-        }
+                //perform sweep with ND off 
+                preselector.powerOffNd();
+                preselector.setRfIn();
+                detectSegment(measParams, fftParams, powerListNdOff, cf);
+                // perform sweep with ND on
+                preselector.powerOnNd();
+                preselector.setNdIn();
+                detectSegment(measParams, fftParams, powerListNdOn, cf);
+            }
+
+            // Y-Factor Calibration
+            Yfactor yFactorCal = new Yfactor(powerListNdOff,
+                powerListNdOff, measParams);
+            }
+        //}
         #endregion
 
         #region private methods 
-        private void detectSegment(MeasurmentParams measParams, 
+        private void detectSegment(SweepParams measParams, 
             FFTParams fftParams, List<double> powerList,
             double cf)
         {
@@ -280,7 +312,7 @@ namespace AgilentN6841A
             err = AgSalLib.salOpenSms(out smsHandle, smsHostName, 0, null);
             if (SensorError(err, "salOpenSms")) return false;
 
-            err = AgSalLib.salConnectSensor3(out sensorHandle, smsHandle, "RM3420B", 0, "Radar Sensor", 0);
+            err = AgSalLib.salConnectSensor3(out sensorHandle, smsHandle, sensorName, 0, "Radar Sensor", 0);
             if (SensorError(err, "salConnectSensor3")) return false;
 
             err = AgSalLib.salGetSensorCapabilities(sensorHandle, out sensorCapabilities);

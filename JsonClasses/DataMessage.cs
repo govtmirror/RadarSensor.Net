@@ -8,45 +8,54 @@ namespace JsonClasses
 {
     public class DataMessage : Message
     {
-        public string Sys2Detect { get; set; }
+        public string sysToDetect { get; set; }
 
-        public string Sensitivity { get; set; }
+        public string sensitivity { get; set; }
 
-        public string mType { get; set; }
+        public string measurementType { get; set; }
 
         // Time of 1st acquisition in a sequence 
         // seconds since Jan 1, 1970 UTC
-        public long t1 { get; set; }
+        public long timeOfAcquisition { get; set; }
 
         // index of current acquisition in a sequence
-        public int a { get; set; }
+        public int aquisitionIndex { get; set; }
 
-        public int nM { get; set; }
+        public int numOfMeasurements { get; set; }
 
         // imposed time between acquisition starts 
-        public double Ta { get; set; }
+        public double timeBetweenAcquisitions { get; set; }
+
+        public double timeBetweenStreams { get; set; }
 
         // overload flag
-        public int OL { get; set; }
+        public int overloadFlag { get; set; }
 
         // detected system noise power dBm
-        public double[] wnI { get; set; }
+        public double[] detectedSysNoisePowers { get; set; }
 
-        public string Comment { get; set; }
+        public string comment { get; set; }
 
-        public string Processed { get; set; }
+        public string processed { get; set; }
 
-        public string DataType { get; set; }
+        public string dataType { get; set; }
 
-        public string ByteOrder { get; set; }
+        public string byteOrder { get; set; }
 
-        public string Compression { get; set; }
+        public string compression { get; set; }
 
-        public Mpar mPar { get; set; }
+        public MeasurementParameters measurementParameters { get; set; }
 
-        // Raw meadured data array dBm
-        public double[] w { get; set; }
+        /// <summary>
+        /// if processed = false 
+        /// dBm ref to input of COTS sensor
+        /// </summary>
+        public double[] rawMeasuredPowers { get; set; }
 
-        public Mpar mpar;
+        /// <summary>
+        /// if processed = true
+        /// measured pwer vector [dbm ref to output of isotropic antenna]
+        /// </summary>
+        public double[] measuredPowers { get; set; }
     }
 }

@@ -1,6 +1,6 @@
 ﻿namespace JsonClasses
 {
-    public class MeasurmentParams
+    public class SweepParams
     {
         // start frequency (Hz)
         private double fStart;
@@ -20,13 +20,12 @@
         private int minAtten;
         private int maxAtten;
         private int stepAtten;
-        private int n;
 
         private string window;
         private string detector;
 
         // parameterless constructor of object deserialization
-        public MeasurmentParams() { }
+        public SweepParams() { }
         #region Properties
         public double Fstart
         {
@@ -113,12 +112,6 @@
         {
             get { return stepAtten; }
             set { stepAtten = value; }
-        }
-
-        public int N
-        {
-            get { return n; }
-            set { n = value; }
         }
 
         public double Enbw

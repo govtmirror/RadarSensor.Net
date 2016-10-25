@@ -18,7 +18,7 @@
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
-    <OutputPath>bin\Debug\</OutputPath>
+    <OutputPath>..\bin\</OutputPath>
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
@@ -46,14 +46,20 @@
   <ItemGroup>
     <Compile Include="DataMessage.cs" />
     <Compile Include="LocMessage.cs" />
-    <Compile Include="MeasurmentParams.cs" />
+    <Compile Include="SweepParams.cs" />
     <Compile Include="Message.cs" />
-    <Compile Include="Mpar.cs" />
+    <Compile Include="MeasurementParameters.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SysMessage.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Logging\General.csproj">
+      <Project>{6e3a2d10-f2b3-45a8-ab5b-c86c79919047}</Project>
+      <Name>General</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
