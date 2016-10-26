@@ -63,7 +63,6 @@ namespace Service
         private void mainThread()
         {
             SensorDriver sensor = new SensorDriver();
-            Preselector preselector  = new Preselector(Constants.PRESELECTOR_IP);
             TimedCount timer = new TimedCount();
 
             while (true)
@@ -98,10 +97,9 @@ namespace Service
                 DateTime.UtcNow.Subtract(new DateTime(1970, 1, 1));
                 locMessage.time = (long)epochTime.TotalSeconds;
 
-                sysMessage.calibration.temp = preselector.getTemp();
-
                 // perform calibration
-                sensor.performCal(measParams, sysMessage, preselector);
+                bool calError = false;
+                sensor.performCal(measParams, sysMessage);
 
                 Console.ReadLine();
             }

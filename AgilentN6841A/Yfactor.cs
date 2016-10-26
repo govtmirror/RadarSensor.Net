@@ -2,46 +2,70 @@
 using System.Collections.Generic;
 using System.Linq;
 using JsonClasses;
+using Logging;
 
 namespace AgilentN6841A
 {
     public class Yfactor
     {
-        private List<double> noiseFigure;
-        private List<double> gain;
-        private List<double> meanPower;
+        private double[] noiseFigureDbw;
+        private double[] gainDbw;
+        private double[] meanPowerDbm;
 
-        public Yfactor(List<double> ndOff, List<double> ndOn,
-            SweepParams measParams)
+        public Yfactor(List<double> ndOn, List<double> ndOff,
+            SysMessage sysMessage)
         {
-            List<double> ndOffW = new List<double>();
-            List<double> ndOnW = new List<double>();
+            noiseFigureDbw = new double[ndOff.Count];
+            gainDbw = new double[ndOff.Count];
+            meanPowerDbm = new double[ndOff.Count];
 
-            if (ndOff.Count == ndOn.Count)
+            double enrW; // excess noise ratio in watts
+            enrW = DbmToWatts(sysMessage.preselector.excessNoiseRatio);
+            double enbw = (double)sysMessage.calibration.
+                measurementParameters.equivalentNoiseBw;
+
+            for (int i = 0; i < ndOn.Count; i++)
             {
-                for (int i = 0; i < ndOn.Count; i ++)
-                {
-                    ndOffW.Add(dbmToWatts(ndOff[i]));
-                    ndOnW.Add(dbmToWatts(ndOn[i]));
-                }
+                // convert from logarithmic to linear units
+                double wattsNdOff = DbmToWatts(ndOff[i]);
+                double wattsNdOn = DbmToWatts(ndOn[i]);
+
+                // calculate noise ratio 
+                double y = wattsNdOn / wattsNdOff;
+
+                // calculate noise figure
+                double noiseFigure = enrW / (y - 1);
+                noiseFigureDbw[i] = WattsToDbw(noiseFigure);
+
+                // calculate gain
+                double gain = wattsNdOn /
+                    (1.38e-23 * (25 + 273.15) * enbw *
+                    (enrW + noiseFigure));
+                gainDbw[i] = WattsToDbw(gain);
+
+                // calculate mean power of receiver noise (Watts) 
+                double meanPwr = 1.38e-23 * (25 + 273.15) *
+                    enbw * noiseFigure * gain;
+                meanPowerDbm[i] = WattsToDbm(meanPwr);
             }
+
         }
 
         #region properties
-        public List<double> NoseFigure
+        public double[] NoseFigure
         {
-            get { return noiseFigure; }
+            get { return noiseFigureDbw; }
         }
 
-        public List<double> Gain
+        public double[] Gain
         {
-            get { return gain; }
+            get { return gainDbw; }
         }
         #endregion
 
-        public List<double> MeanPower
+        public double[] MeanPower
         {
-            get { return meanPower; }
+            get { return meanPowerDbm; }
         }
 
         #region static utility methods
@@ -50,16 +74,22 @@ namespace AgilentN6841A
         /// </summary>
         /// <param name="p">power in dbm</param>
         /// <returns>power in watts</returns>
-        public static double dbmToWatts(double p)
+        public static double DbmToWatts(double p)
         {
             return Math.Pow(10, ((p - 30) / 10));
         }
+
+        public static double WattsToDbm(double p)
+        {
+            return 10 * Math.Log10(p) + 30;
+        }
+
+        public static double WattsToDbw(double p)
+        {
+            return 10 * Math.Log10(p);
+        }
         #endregion
 
-        public static void Main(string[] args)
-        {
-            Console.WriteLine(dbmToWatts(25));
-            Console.ReadLine();
-        }
+        public static void Main(string[] args) { }
     }
 }

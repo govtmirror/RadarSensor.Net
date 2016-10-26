@@ -22,7 +22,7 @@ namespace JsonClasses
         public double? resolutionBw { get; set; }
         public double? videoBw { get; set; }
         public string window { get; set; }
-        public double? ENBW { get; set; }
+        public double? equivalentNoiseBw { get; set; }
         public int? attenuation { get; set; }
         public double? sampleRate { get; set; }
         public double[] centerFrequencies { get; set; }

@@ -41,7 +41,7 @@ namespace SensorFrontEnd
         /// </summary>
         public void setRfIn()
         {
-            webRelay.setRelayState(1, 0);
+            webRelay.setRelayState(2, 0);
         }
 
         /// <summary>
@@ -49,7 +49,7 @@ namespace SensorFrontEnd
         /// </summary>
         public void setNdIn()
         {
-            webRelay.setRelayState(1, 1);
+            webRelay.setRelayState(2, 1);
         }
 
         /// <summary>

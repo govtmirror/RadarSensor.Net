@@ -32,6 +32,7 @@ namespace AgilentN6841A
         private uint numFftsToAvg;
         // window: 'Hanning', 'Gauss-top', 'Flattop', 'Rectangular'
         private uint numSegments;
+        private uint numFullSegments;
 
         private bool error = false;
         
@@ -70,6 +71,17 @@ namespace AgilentN6841A
             get { return centerFrequencies; }
         }
 
+        public double WindowValue
+        {
+            get
+            {
+                double winValue;
+                windows.TryGetValue(measParams.Window, 
+                    out winValue);
+                return winValue;
+            }
+        }
+
         public double SampleRate
         {
             get { return sampleRate; }
@@ -105,6 +117,11 @@ namespace AgilentN6841A
             get { return numSegments; }
         }
 
+        public uint NumFullSegments
+        {
+            get { return numFullSegments; }
+        }
+
         public bool Error
         {
             get { return error; }
@@ -115,7 +132,7 @@ namespace AgilentN6841A
             double[] possibleSpans)
         {
             // calculate possible sample rates
-            double span = measParams.Fstop - measParams.Fstart;
+            double span = measParams.StopFrequency - measParams.StartFrequency;
             if (span >= sensorCapabilities.maxSpan)
             {
                 sampleRate = possibleSampleRates.Max();
@@ -147,7 +164,7 @@ namespace AgilentN6841A
             {
                 double possibleEnbw = (winValue * sampleRate) /
                     possibleFftBins[i];
-                if (possibleEnbw <= measParams.Bw)
+                if (possibleEnbw <= measParams.BandWidth)
                 {
                     numFftBins = possibleFftBins[i];
                     break;
@@ -193,10 +210,10 @@ namespace AgilentN6841A
             // calculate number of segments
             double binResolution = sampleRate / numFftBins;
             double segmentSpan = binResolution * numValidFftBins;
-            double numFullSegments = Math.Floor(span / segmentSpan);
+            numFullSegments = (uint)Math.Floor(span / segmentSpan);
 
             double nextCenterFrequency;  // center freq for next segment
-            nextCenterFrequency = measParams.Fstart + binResolution / 2
+            nextCenterFrequency = measParams.StartFrequency + binResolution / 2
                 + binResolution * (numFftBins / 2 - idx1)
                 + binResolution * numValidFftBins * numFullSegments;
 
@@ -215,9 +232,19 @@ namespace AgilentN6841A
             // calculate center frequencies 
             for (int i = 0; i < numSegments; i++)
             {
-                centerFrequencies.Add(measParams.Fstart + (binResolution / 2)
+                double cf = measParams.StartFrequency + (binResolution / 2)
                     + (binResolution * (numFftBins / 2 - idx1))
-                    + (binResolution * numValidFftBins * i));
+                    + (binResolution * numValidFftBins * i);
+
+                if (cf < sensorCapabilities.minFrequency ||
+                    cf > sensorCapabilities.maxFrequency)
+                {
+                    Logger.logMessage("center frequency is invalid: "
+                        + "\n" + "index " + i + " " + cf);
+                    error = true;
+                    return;
+                }
+                centerFrequencies.Add(cf);
             }
 
             // calculate frequencies for the span 
@@ -226,7 +253,7 @@ namespace AgilentN6841A
 
             for (int i = 0; i < numFrequencies; i++)
             {
-                frequencyList.Add(measParams.Fstart + 
+                frequencyList.Add(measParams.StartFrequency + 
                     (binResolution / 2) + binResolution * i);
             }
 

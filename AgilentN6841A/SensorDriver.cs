@@ -7,6 +7,7 @@ using Logging;
 using System.Collections.Generic;
 using System.Linq;
 using SensorFrontEnd;
+using System.Threading;
 
 namespace AgilentN6841A
 {
@@ -19,6 +20,8 @@ namespace AgilentN6841A
 
     public class SensorDriver
     {
+        Preselector preselector = 
+            new Preselector(Constants.PRESELECTOR_IP);
         // Agilent N6841A specific
         public const int MAX_ATTEN = 30;
         public const int MIN_ATTEN = 0;
@@ -77,13 +80,13 @@ namespace AgilentN6841A
         /// </summary>
         /// <param name="band"> frequency band for measurement
         /// </param>
-        public void performCal(SweepParams measParams, SysMessage sysMessage,
-            Preselector preselector)
+        public void performCal(SweepParams measParams, SysMessage sysMessage)
         {
             List<double> powerListNdOn = new List<double>();
             List<double> powerListNdOff = new List<double>();
+            sysMessage.calibration.temp = preselector.getTemp();
 
-            double attenuaiton; 
+            double attenuaiton;
 
             if (measParams.Attenuation > MAX_ATTEN ||
                 measParams.Attenuation < MIN_ATTEN)
@@ -131,6 +134,7 @@ namespace AgilentN6841A
                 // TODO figure out best was to handle error 
                 // with FFT calculations
                 Logger.logMessage("error calculating FFT Params");
+                return;
             }
 
             // populate SysMessage FFT values
@@ -140,40 +144,71 @@ namespace AgilentN6841A
                 fftParams.FrequencyList[0];
             sysMessage.calibration.measurementParameters.stopFrequency =
                 fftParams.FrequencyList[fftParams.FrequencyList.Count - 1];
-            sysMessage.calibration.measurementParameters.numOfFrequenciesInSweep =
-                fftParams.FrequencyList.Count;
+            sysMessage.calibration.measurementParameters
+                .numOfFrequenciesInSweep = fftParams.FrequencyList.Count;
+            sysMessage.calibration.measurementParameters.detector =
+                measParams.Detector;
+            sysMessage.calibration.measurementParameters.window =
+                measParams.Window;
+            sysMessage.calibration.measurementParameters.attenuation =
+                measParams.Attenuation;
+            sysMessage.calibration.measurementParameters.videoBw = -1;
+            sysMessage.calibration.measurementParameters.
+                equivalentNoiseBw = fftParams.WindowValue *
+                fftParams.SampleRate / fftParams.NumFftBins;
+            // dwell time?
 
-            // detect over span
-            for (int j = 0; j < fftParams.NumSegments; j++)
-            {
-                double cf = fftParams.CenterFrequencies[j];
-                if (cf < sensorCapabilities.minFrequency ||
-                    cf > sensorCapabilities.maxFrequency)
-                {
-                    Logger.logMessage("center frequency is invalid: "
-                        + "\n" + "index " + j + " " + cf);
-                }
-                //perform sweep with ND off 
-                preselector.powerOffNd();
-                preselector.setRfIn();
-                detectSegment(measParams, fftParams, powerListNdOff, cf);
-                // perform sweep with ND on
-                preselector.powerOnNd();
-                preselector.setNdIn();
-                detectSegment(measParams, fftParams, powerListNdOn, cf);
-            }
+            preselector.setNdIn();
+            // Perform sweep with calibrated noise source on
+            preselector.powerOnNd();
+            detectSpan(fftParams, powerListNdOn, measParams);
+
+            // perfrom sweet with calibrated noise source off
+            preselector.powerOffNd();
+            detectSpan(fftParams, powerListNdOff, measParams);
 
             // Y-Factor Calibration
-            Yfactor yFactorCal = new Yfactor(powerListNdOff,
-                powerListNdOff, measParams);
+            Yfactor yFactorCal;
+            if (powerListNdOff.Count == powerListNdOn.Count) // sanity check
+            {
+                yFactorCal = new Yfactor(powerListNdOn,
+                    powerListNdOff, sysMessage);
             }
+            else
+            {
+                Logger.logMessage("Error getting sweep data.  " +
+                    "Noise diode on and off power list are different sizes");
+            }
+        }
         //}
         #endregion
 
         #region private methods 
+        private void detectSpan(FFTParams fftParams, 
+            List<double> powerList, SweepParams measParams)
+        {
+            // detect over span
+            for (int j = 0; j < fftParams.NumSegments; j++)
+            {
+                double cf = fftParams.CenterFrequencies[j];
+
+                uint numFftsToCopy;
+                if (j == fftParams.NumFullSegments)
+                {
+                    numFftsToCopy = fftParams.NumBinsLastSegment;
+                }
+                else
+                {
+                    numFftsToCopy = fftParams.NumValidFftBins;
+                }
+              
+                detectSegment(measParams, fftParams, powerList,
+                    cf, numFftsToCopy);
+            }
+        }
         private void detectSegment(SweepParams measParams, 
             FFTParams fftParams, List<double> powerList,
-            double cf)
+            double cf, uint numFftsToCopy)
         {
             AgSalLib.SalError err;
 
@@ -241,7 +276,7 @@ namespace AgilentN6841A
             fs[0].centerFrequency = cf;
             fs[0].sampleRate = fftParams.SampleRate;
             fs[0].preamp = measParams.PreAmp;
-            fs[0].attenuation = measParams.Antenna;
+            fs[0].attenuation = measParams.Attenuation;
 
             // Setup pacing
             AgSalLib.salFlowControl flowControl = new AgSalLib.salFlowControl();
@@ -258,31 +293,65 @@ namespace AgilentN6841A
             AgSalLib.SweepStatus status;
             double elapsed;
             AgSalLib.salGetSweepStatus2(measHandle, 0, out status, out elapsed);
-            // busy waiting
+            // wait until sweep is finished
             while (status == AgSalLib.SweepStatus.SweepStatus_running)
             {
                 AgSalLib.salGetSweepStatus2(measHandle, 0, out status, out elapsed);
             }
 
             // get data from sweep
-            AgSalLib.SegmentData segmentData = new AgSalLib.SegmentData();
+            AgSalLib.SegmentData dataHeader = new AgSalLib.SegmentData();
+            // Agilent DLL requires float array even though it uses double 
+            // everywhere else ..... annoying 
             float[] frequencyData = new float[fftParams.NumFftBins];
 
-            err = AgSalLib.salGetSegmentData(measHandle, 
-                out segmentData, frequencyData, 
-                (uint)frequencyData.Length * 4);
+            // how long to read before exiting
+            int maxDataReadMilliSeconds = 100;
+            DateTime t0 = DateTime.Now;
+            bool dataRetrieved = false;
 
-            if (SensorError(err, "salGetSegmentData"))
+            while (!dataRetrieved)
             {
-                return;
+                TimeSpan elapsedTime = DateTime.Now.Subtract(t0);
+                if (elapsedTime.Milliseconds > maxDataReadMilliSeconds)
+                {
+                    Logger.logMessage("Getting segment data timed out, " +
+                        "restarting Calibration");
+                    this.performCal(measParams, new SysMessage());
+                }
+
+                err = AgSalLib.salGetSegmentData(measHandle, 
+                    out dataHeader, frequencyData, 
+                    (uint)frequencyData.Length * 4);
+
+                switch(err) 
+                {
+                    case AgSalLib.SalError.SAL_ERR_NONE:
+                        if (dataHeader.errorNum != AgSalLib.SalError.SAL_ERR_NONE) 
+                        {
+                            string message = "Segment data header returned an error: \n\n";
+                                message += "errorNumber: " + dataHeader.errorNum.ToString() + "\n";
+                                message += "errorInfo:   " + dataHeader.errorInfo;
+                            Logger.logMessage(message);
+                            // return an error 
+                            break;
+                        }
+                        //get the data 
+                        // cast frequencyData as doubles and add to powerLists 
+                        floatArrayToListOfDoubles(frequencyData, 
+                        powerList, numFftsToCopy);
+                        dataRetrieved = true;
+                        break;
+
+                    case AgSalLib.SalError.SAL_ERR_NO_DATA_AVAILABLE:
+                        // data is not available yet ... 
+                        break;
+                    default:
+                        // restart cal
+                        SensorError(err, "salGetSegmentData");
+                        break;
+                }
             }
-            if (segmentData.errorNum != AgSalLib.SalError.SAL_ERR_NONE)
-            {
-                Logger.logMessage("Error in segment data header");
-            }
-            // cast frequencyData to an array of doubles
-            var freqData = Array.ConvertAll(frequencyData, item => (double)item);
-            arrayToList<double>(freqData, powerList);
         }
 
         // Calculates sample rates for Agilent sensor 
@@ -333,11 +402,12 @@ namespace AgilentN6841A
             return false;
         }
 
-        private void arrayToList<T>(T[] array, List<T> list)
+        private void floatArrayToListOfDoubles(float[] array, 
+            List<double> list, uint sizeToCopy)
         {
-            for (int i = 0; i <array.Length; i++)
+            for (int i = 0; i < sizeToCopy; i++)
             {
-                list.Add(array[i]);
+                list.Add((double)array[i]);
             }
         }
         #endregion

@@ -3,10 +3,10 @@
     public class SweepParams
     {
         // start frequency (Hz)
-        private double fStart;
+        private double startFrequency;
         // stop frequency (Hz)
-        private double fStop;
-        private double bw; // bandwidth (hz)
+        private double stopFrequency;
+        private double bandWidth; // bandwidth (hz)
         private double enbw;
         private double dwellTime; // (seconds)
         // percentage of time-domain samples to overlap in adjacent FFTs {0,50}
@@ -27,16 +27,16 @@
         // parameterless constructor of object deserialization
         public SweepParams() { }
         #region Properties
-        public double Fstart
+        public double StartFrequency
         {
-            get { return fStart; }
-            set { fStart = value; }
+            get { return startFrequency; }
+            set { startFrequency = value; }
         }
 
-        public double Fstop
+        public double StopFrequency
         {
-            get { return fStop; }
-            set { fStop = value; }
+            get { return stopFrequency; }
+            set { stopFrequency = value; }
         }
 
         public string Detector
@@ -73,10 +73,10 @@
             get { return antenna; }
             set { antenna = value; }
         }
-        public double Bw
+        public double BandWidth
         {
-            get { return bw; }
-            set { bw = value; }
+            get { return bandWidth; }
+            set { bandWidth = value; }
         }
         public int PreAmp
         {
