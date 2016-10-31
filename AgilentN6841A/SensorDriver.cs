@@ -84,7 +84,6 @@ namespace AgilentN6841A
         {
             List<double> powerListNdOn = new List<double>();
             List<double> powerListNdOff = new List<double>();
-            sysMessage.calibration.temp = preselector.getTemp();
 
             double attenuaiton;
 
@@ -137,7 +136,7 @@ namespace AgilentN6841A
                 return;
             }
 
-            // populate SysMessage FFT values
+            // populate SysMessage values
             sysMessage.calibration.measurementParameters.resolutionBw =
                 fftParams.SampleRate / fftParams.NumFftBins;
             sysMessage.calibration.measurementParameters.startFrequency =
@@ -156,6 +155,7 @@ namespace AgilentN6841A
             sysMessage.calibration.measurementParameters.
                 equivalentNoiseBw = fftParams.WindowValue *
                 fftParams.SampleRate / fftParams.NumFftBins;
+            sysMessage.calibration.temp = preselector.getTemp();
             // dwell time?
 
             preselector.setNdIn();
@@ -171,8 +171,10 @@ namespace AgilentN6841A
             Yfactor yFactorCal;
             if (powerListNdOff.Count == powerListNdOn.Count) // sanity check
             {
-                yFactorCal = new Yfactor(powerListNdOn,
-                    powerListNdOff, sysMessage);
+                yFactorCal = new Yfactor(powerListNdOn, powerListNdOff, 
+                    sysMessage.preselector.excessNoiseRatio, 
+                    (double)sysMessage.calibration.
+                    measurementParameters.equivalentNoiseBw);
             }
             else
             {
