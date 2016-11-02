@@ -1,10 +1,10 @@
 {
-  "CalsPerHour": 1,
-  "Temp": null,
-  "mType": "Y-factor: swept-frequency",
-  "nM": null,
-  "Processed": "True",
-  "DataType": "ASCII",
-  "ByteOrder": "Network",
-  "Compression": "None"
+  "calsPerHour": 1,
+  "temp": null,
+  "measurementType": "Y-factor: swept-frequency",
+  "numOfMeasurementsPerCal": null,
+  "processed": "True",
+  "dataType": "ASCII",
+  "byteOrder": "Network",
+  "compression": "None"
 }

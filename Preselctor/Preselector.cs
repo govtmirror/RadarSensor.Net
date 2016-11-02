@@ -23,64 +23,64 @@ namespace SensorFrontEnd
         /// <summary>
         /// powers on noide diode
         /// </summary>
-        public void powerOnNd()
+        public void PowerOnNd()
         {
-            webRelay.setRelayState(1, 1);
+            webRelay.SetRelayState(1, 1);
         }
 
         /// <summary>
         /// powers off noide diode
         /// </summary>
-        public void powerOffNd()
+        public void PowerOffNd()
         {
-            webRelay.setRelayState(1, 0);
+            webRelay.SetRelayState(1, 0);
         }
 
         /// <summary>
         /// set source to RF in 
         /// </summary>
-        public void setRfIn()
+        public void SetRfIn()
         {
-            webRelay.setRelayState(2, 0);
+            webRelay.SetRelayState(2, 0);
         }
 
         /// <summary>
         /// sets source to noide diode for calibration
         /// </summary>
-        public void setNdIn()
+        public void SetNdIn()
         {
-            webRelay.setRelayState(2, 1);
+            webRelay.SetRelayState(2, 1);
         }
 
         /// <summary>
         /// Sets path to 3.5G filter
         /// </summary>
         /// <param name="filter"></param>
-        public void set3_5Filter()
+        public void Set3_5Filter()
         {
-            webRelay.setRelayState(4, 0);
+            webRelay.SetRelayState(4, 0);
         }
 
         /// <summary>
         /// Sets path to 3.0G filter
         /// </summary>
         /// <returns></returns>
-        public void set3_0Filter()
+        public void Set3_0Filter()
         {
-            webRelay.setRelayState(4, 1);
+            webRelay.SetRelayState(4, 1);
         }
 
         /// <summary>
         /// bypasses filters for 2.8G band
         /// </summary>
-        public void setBypass()
+        public void SetBypass()
         {
-            webRelay.setRelayState(3, 1);
+            webRelay.SetRelayState(3, 1);
         }
     
-        public double getTemp()
+        public double GetTemp()
         {
-            return webRelay.getTemp();
+            return webRelay.GetTemp();
         }
 
         public static void Main(string[] args)
@@ -101,18 +101,18 @@ namespace SensorFrontEnd
             if (baseURL.StartsWith("http://"))
             {
                 string temp = baseURL.Substring(7);
-                validateIP(ipMatcher, temp);
+                ValidateIP(ipMatcher, temp);
                 this.baseUrl = baseURL;
             }
             else
             {
-                validateIP(ipMatcher, baseURL);
+                ValidateIP(ipMatcher, baseURL);
                 baseUrl = "http://" + baseURL;
             }
             ctlUrl = baseUrl + ":" + port + "/state.xml";
         }
 
-        internal void validateIP(Regex ipMatcher, string ip)
+        internal void ValidateIP(Regex ipMatcher, string ip)
         {
             if (!ipMatcher.IsMatch(ip))
             {
@@ -122,7 +122,7 @@ namespace SensorFrontEnd
             }
         }
 
-        internal bool setRelayState(int relay, int state)
+        internal bool SetRelayState(int relay, int state)
         {
             string rqstUrl = ctlUrl + "?relay" + relay + "State=" + state;
             WebRequest wr = WebRequest.Create(rqstUrl);
@@ -153,7 +153,7 @@ namespace SensorFrontEnd
         /// </summary>
         /// <returns> current temperatre or double.MinValue if error 
         /// </returns>
-        internal double getTemp()
+        internal double GetTemp()
         {
             string rqstUrl = ctlUrl;
             WebRequest wr = WebRequest.Create(rqstUrl);
@@ -184,14 +184,14 @@ namespace SensorFrontEnd
         {
             X300 webRelay = new X300("10.6.6.22");
 
-            webRelay.setRelayState(4, 1);
+            webRelay.SetRelayState(4, 1);
             Thread.Sleep(200);
-            webRelay.setRelayState(4, 0);
+            webRelay.SetRelayState(4, 0);
             Thread.Sleep(200);
-            webRelay.setRelayState(3, 1);
+            webRelay.SetRelayState(3, 1);
             Thread.Sleep(200);
-            webRelay.setRelayState(3, 0);
-            webRelay.getTemp();
+            webRelay.SetRelayState(3, 0);
+            webRelay.GetTemp();
             Console.Read();
         }
     }

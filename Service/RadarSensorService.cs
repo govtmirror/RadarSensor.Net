@@ -95,10 +95,11 @@ namespace Service
                     measParams =
                         new JavaScriptSerializer().Deserialize<SweepParams>(
                             json);
+
                     SysMessage sysMessage = new SysMessage();
                     sysMessage.loadMessageFields();
 
-                    bool err = sensor.performCal(measParams, sysMessage);
+                    bool err = sensor.PerformCal(measParams, sysMessage);
                     if (err)
                     {
                         Utilites.logMessage("Error performing calibration, " +
@@ -108,6 +109,7 @@ namespace Service
                     }
                     Utilites.WriteMessageToFile(sysMessage);
                     Console.ReadLine();
+                    timer.reset();
                     initialCalComplete = true;
                 }
                 else

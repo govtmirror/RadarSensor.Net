@@ -62,7 +62,7 @@ namespace AgilentN6841A
                 Environment.Exit(0); 
             }
             AgSalLib.salSensorBeep(sensorHandle);
-            calcSampleRates();
+            CalcSampleRates();
         }
 
         #region public methods
@@ -72,7 +72,7 @@ namespace AgilentN6841A
         /// <param name="sweepParams"></param>
         /// <param name="sysMessage"></param>
         /// <returns>true if error</returns>
-        public bool performCal(SweepParams sweepParams, SysMessage sysMessage)
+        public bool PerformCal(SweepParams sweepParams, SysMessage sysMessage)
         {
             List<double> powerListNdOn = new List<double>();
             List<double> powerListNdOff = new List<double>();
@@ -92,22 +92,9 @@ namespace AgilentN6841A
             }
 
             // set filter 
-            if (sweepParams.sys2Detect.ToLower().Equals("spn43"))
+            bool err = SetFilter(sweepParams.sys2Detect);
+            if (err)
             {
-                preselector.set3_5Filter();
-            }
-            else if (sweepParams.sys2Detect.ToLower().Equals("boatnav"))
-            {
-                preselector.set3_0Filter();
-            }
-            else if (sweepParams.sys2Detect.ToLower().Equals("ASR"))
-            {
-                preselector.setBypass();
-            }
-            else
-            {
-                Utilites.logMessage("invalid sys2Detect " +
-                    "in Measurement parameters object");
                 return true;
             }
 
@@ -119,8 +106,9 @@ namespace AgilentN6841A
             sysMessage.calibration.measurementParameters.attenuation =
                 sweepParams.Attenuation;
             sysMessage.calibration.measurementParameters.videoBw = -1;
-            sysMessage.calibration.temp = preselector.getTemp();
-            // dwell time?
+            sysMessage.calibration.temp = preselector.GetTemp();
+            sysMessage.calibration.measurementParameters.dwellTime =
+                sweepParams.DwellTime;
 
             // perfrom cal for number of attenuations
             // IS THIS necessary???
@@ -135,23 +123,21 @@ namespace AgilentN6841A
 
             if (fftParams.Error)
             {
-                // TODO figure out best was to handle error 
-                // with FFT calculations
                 Utilites.logMessage("error calculating FFT Params");
                 return true;
             }
 
             // load sysMessage with fftParams and perfrom sweep for cal
-            fftParams.loadSysMessage(sysMessage);
+            fftParams.LoadSysMessage(sysMessage);
 
             // Perform sweep with calibrated noise source on
-            preselector.setNdIn();
-            preselector.powerOnNd();
-            detectSpan(fftParams, powerListNdOn, sweepParams);
+            preselector.SetNdIn();
+            preselector.PowerOnNd();
+            DetectSpan(fftParams, powerListNdOn, sweepParams);
 
             // perfrom sweep with calibrated noise source off
-            preselector.powerOffNd();
-            detectSpan(fftParams, powerListNdOff, sweepParams);
+            preselector.PowerOffNd();
+            DetectSpan(fftParams, powerListNdOff, sweepParams);
 
             // Y-Factor Calibration
             Yfactor yFactorCal;
@@ -179,7 +165,7 @@ namespace AgilentN6841A
         #endregion
 
         #region private methods 
-        private void detectSpan(FFTParams fftParams, 
+        private void DetectSpan(FFTParams fftParams, 
             List<double> powerList, SweepParams measParams)
         {
             // detect over span
@@ -197,12 +183,12 @@ namespace AgilentN6841A
                     numFftsToCopy = fftParams.NumValidFftBins;
                 }
               
-                detectSegment(measParams, fftParams, powerList,
+                DetectSegment(measParams, fftParams, powerList,
                     cf, numFftsToCopy);
             }
         }
 
-        private void detectSegment(SweepParams measParams, 
+        private void DetectSegment(SweepParams measParams, 
             FFTParams fftParams, List<double> powerList,
             double cf, uint numFftsToCopy)
         {
@@ -313,7 +299,7 @@ namespace AgilentN6841A
                 {
                     Utilites.logMessage("Getting segment data timed out, " +
                         "restarting Calibration");
-                    this.performCal(measParams, new SysMessage());
+                    this.PerformCal(measParams, new SysMessage());
                 }
 
                 err = AgSalLib.salGetSegmentData(measHandle, 
@@ -334,7 +320,7 @@ namespace AgilentN6841A
                         }
                         //get the data 
                         // cast frequencyData as doubles and add to powerLists 
-                        floatArrayToListOfDoubles(frequencyData, 
+                        FloatArrayToListOfDoubles(frequencyData, 
                         powerList, numFftsToCopy);
                         dataRetrieved = true;
                         break;
@@ -350,9 +336,32 @@ namespace AgilentN6841A
             }
         }
 
+        private bool SetFilter(string sys2Detect)
+        {
+            if (sys2Detect.ToLower().Equals("spn43"))
+            {
+                preselector.Set3_5Filter();
+            }
+            else if (sys2Detect.ToLower().Equals("boatnav"))
+            {
+                preselector.Set3_0Filter();
+            }
+            else if (sys2Detect.ToLower().Equals("ASR"))
+            {
+                preselector.SetBypass();
+            }
+            else
+            {
+                Utilites.logMessage("invalid sys2Detect " +
+                    "in Measurement parameters object");
+                return true;
+            }
+            return false;
+        }
+
         // Calculates sample rates for Agilent sensor 
         // just need to to calculate once and use in FFTParams 
-        private void calcSampleRates()
+        private void CalcSampleRates()
         {
             // Sample Rate = 1.28 * Span : 1.28 given by sensor capabilities
             int maxDecimations = sensorCapabilities.maxDecimations;
@@ -398,7 +407,7 @@ namespace AgilentN6841A
             return false;
         }
 
-        private void floatArrayToListOfDoubles(float[] array, 
+        private void FloatArrayToListOfDoubles(float[] array, 
             List<double> list, uint sizeToCopy)
         {
             for (int i = 0; i < sizeToCopy; i++)

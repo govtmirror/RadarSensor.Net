@@ -267,7 +267,7 @@ namespace AgilentN6841A
             }
         }
 
-        public void loadSysMessage(SysMessage sysMessage)
+        public void LoadSysMessage(SysMessage sysMessage)
         {
             // calculate  resolution bw
             sysMessage.calibration.measurementParameters.resolutionBw =
