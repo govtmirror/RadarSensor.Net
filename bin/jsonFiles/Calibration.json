@@ -1,0 +1,10 @@
+{
+  "CalsPerHour": 1,
+  "Temp": null,
+  "mType": "Y-factor: swept-frequency",
+  "nM": null,
+  "Processed": "True",
+  "DataType": "ASCII",
+  "ByteOrder": "Network",
+  "Compression": "None"
+}

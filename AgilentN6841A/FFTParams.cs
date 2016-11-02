@@ -2,15 +2,14 @@
 using System;
 using System.Linq;
 using System.Collections.Generic;
-using Logging;
-using JsonClasses;
+using General;
 
 namespace AgilentN6841A
 {
     public class FFTParams
     {
         #region fields
-        private SweepParams measParams;
+        private SweepParams sweepParams;
         // center frequency (Hz) for the ffts that comprise of the span
         private List<double> centerFrequencies 
             = new List<double>();
@@ -54,14 +53,12 @@ namespace AgilentN6841A
         };
         #endregion
 
-        public FFTParams() { }
-
         public FFTParams(AgSalLib.SensorCapabilities c,
-            SweepParams m, double[] possibleSampleRates,
+            SweepParams sweepParams, double[] possibleSampleRates, 
             double[] possibleSpans)
         {
             sensorCapabilities = c;
-            measParams = m;
+            this.sweepParams = sweepParams;
             calcFftParameters(possibleSampleRates, possibleSpans);
         }
 
@@ -76,7 +73,7 @@ namespace AgilentN6841A
             get
             {
                 double winValue;
-                windows.TryGetValue(measParams.Window, 
+                windows.TryGetValue(sweepParams.Window, 
                     out winValue);
                 return winValue;
             }
@@ -132,7 +129,7 @@ namespace AgilentN6841A
             double[] possibleSpans)
         {
             // calculate possible sample rates
-            double span = measParams.StopFrequency - measParams.StartFrequency;
+            double span = sweepParams.StopFrequency - sweepParams.StartFrequency;
             if (span >= sensorCapabilities.maxSpan)
             {
                 sampleRate = possibleSampleRates.Max();
@@ -159,12 +156,12 @@ namespace AgilentN6841A
 
             // calculate num of FFT bins
             double winValue;
-            windows.TryGetValue(measParams.Window, out winValue);
+            windows.TryGetValue(sweepParams.Window, out winValue);
             for (int i = 1; i < possibleFftBins.Length; i++)
             {
                 double possibleEnbw = (winValue * sampleRate) /
                     possibleFftBins[i];
-                if (possibleEnbw <= measParams.BandWidth)
+                if (possibleEnbw <= sweepParams.BandWidth)
                 {
                     numFftBins = possibleFftBins[i];
                     break;
@@ -179,7 +176,7 @@ namespace AgilentN6841A
             if (numFftBins < sensorCapabilities.fftMinBlocksize ||
                 numFftBins > sensorCapabilities.fftMaxBlocksize)
             {
-                Logger.logMessage("FFT block size is out of range");
+                Utilites.logMessage("FFT block size is out of range");
                 error = true;
             }
             // determine number of valid fft bins not affected by 
@@ -200,7 +197,7 @@ namespace AgilentN6841A
             if (numValidFftBins < sensorCapabilities.fftMinBlocksize ||
                 numValidFftBins > sensorCapabilities.fftMaxBlocksize)
             {
-                Logger.logMessage("numValidFftBins is out of range");
+                Utilites.logMessage("numValidFftBins is out of range");
                 error = true;
             }
 
@@ -213,7 +210,7 @@ namespace AgilentN6841A
             numFullSegments = (uint)Math.Floor(span / segmentSpan);
 
             double nextCenterFrequency;  // center freq for next segment
-            nextCenterFrequency = measParams.StartFrequency + binResolution / 2
+            nextCenterFrequency = sweepParams.StartFrequency + binResolution / 2
                 + binResolution * (numFftBins / 2 - idx1)
                 + binResolution * numValidFftBins * numFullSegments;
 
@@ -232,14 +229,14 @@ namespace AgilentN6841A
             // calculate center frequencies 
             for (int i = 0; i < numSegments; i++)
             {
-                double cf = measParams.StartFrequency + (binResolution / 2)
+                double cf = sweepParams.StartFrequency + (binResolution / 2)
                     + (binResolution * (numFftBins / 2 - idx1))
                     + (binResolution * numValidFftBins * i);
 
                 if (cf < sensorCapabilities.minFrequency ||
                     cf > sensorCapabilities.maxFrequency)
                 {
-                    Logger.logMessage("center frequency is invalid: "
+                    Utilites.logMessage("center frequency is invalid: "
                         + "\n" + "index " + i + " " + cf);
                     error = true;
                     return;
@@ -253,21 +250,42 @@ namespace AgilentN6841A
 
             for (int i = 0; i < numFrequencies; i++)
             {
-                frequencyList.Add(measParams.StartFrequency + 
+                frequencyList.Add(sweepParams.StartFrequency + 
                     (binResolution / 2) + binResolution * i);
             }
 
             // specify number of FFTs to detect over
-            if (measParams.TimeOverlap == 0)
+            if (sweepParams.TimeOverlap == 0)
                 {
-                numFftsToAvg = (uint)Math.Ceiling(measParams.DwellTime * sampleRate
+                numFftsToAvg = (uint)Math.Ceiling(sweepParams.DwellTime * sampleRate
                     / numFftBins);
             } 
-            else if (measParams.TimeOverlap == 50)
+            else if (sweepParams.TimeOverlap == 50)
             {
-                numFftsToAvg = (uint)Math.Ceiling(2 * measParams.DwellTime 
+                numFftsToAvg = (uint)Math.Ceiling(2 * sweepParams.DwellTime 
                     * sampleRate / numFftBins);
             }
+        }
+
+        public void loadSysMessage(SysMessage sysMessage)
+        {
+            // calculate  resolution bw
+            sysMessage.calibration.measurementParameters.resolutionBw =
+                SampleRate / NumFftBins;
+       
+            sysMessage.calibration.measurementParameters.startFrequency =
+                FrequencyList[0];
+
+            sysMessage.calibration.measurementParameters.stopFrequency =
+                FrequencyList[FrequencyList.Count - 1];
+
+            sysMessage.calibration.measurementParameters
+                .numOfFrequenciesInSweep = FrequencyList.Count;
+
+            // calculate equivalent noise bandwidth 
+            sysMessage.calibration.measurementParameters.
+                equivalentNoiseBw = 
+                WindowValue * SampleRate / NumFftBins;
         }
 
         // round towards nearest even integer 

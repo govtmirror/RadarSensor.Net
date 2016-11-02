@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Net;
 using System.IO;
-using Logging;
+using General;
 using System.Threading;
 using System.Text.RegularExpressions;
 using System.Xml;
@@ -117,7 +117,7 @@ namespace SensorFrontEnd
             if (!ipMatcher.IsMatch(ip))
             {
                 Console.WriteLine("invalid ip");
-                Logger.logMessage("X300 relay initialized with invalid ip address");
+                Utilites.logMessage("X300 relay initialized with invalid ip address");
                 Environment.Exit(0);
             }
         }
@@ -135,13 +135,13 @@ namespace SensorFrontEnd
                 relayState = xmlReader.ReadElementContentAsInt();
                 if (relayState != state)
                 {
-                    Logger.logMessage("relay in invalid state");
+                    Utilites.logMessage("relay in invalid state");
                     return false;
                 }
             }
             else
             {
-                Logger.logMessage("Invalid XML when verifiyng relay " +
+                Utilites.logMessage("Invalid XML when verifiyng relay " +
                     "was changed to correct state");
                 return false;
             }
@@ -167,7 +167,7 @@ namespace SensorFrontEnd
             }
             else
             {
-                Logger.logMessage("Invalid XML when reading " +
+                Utilites.logMessage("Invalid XML when reading " +
                     "temperature from sensor1");
                 temp = double.MinValue;
             }

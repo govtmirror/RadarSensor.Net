@@ -1,45 +1,45 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using JsonClasses;
-using Logging;
+using General;
 
 namespace AgilentN6841A
 {
     public class Yfactor
     {
         // Boltzmann's constant
-        public readonly double K = 1.38e-23;
+        private double K = 1.38e-23;
         // IEEE standard reference temperature in Kelvin
-        public readonly double T0 = 290;
-
+        private double T0 = 290;
 
         private double[] noiseFigureDbw;
         private double[] gainDbw;
         private double[] meanPowerDbm;
 
-        private double noiseFigureDbwAvg;
-        private double gainDbwAvg;
+        private double meanNoiseFigureDbw;
+        private double meanGainDbw;
+        private double meanDetectedSysNoise;
 
-        private double[] noiseFigureWatts;
-        private double[] gainWatts;
-
-        public Yfactor(List<double> ndOn, List<double> ndOff,
-            double excessNoiseRatio, double enbw)
+        public Yfactor(List<double> ndOn, List<double> ndOff, 
+            double rbw, double enbw, double dwellTime, 
+            double excessNoiseRatio, double cableLoss, 
+            double antennaGain)
         {
             noiseFigureDbw = new double[ndOff.Count];
             gainDbw = new double[ndOff.Count];
             meanPowerDbm = new double[ndOff.Count];
 
-            gainWatts = new double[ndOff.Count];
-            noiseFigureWatts = new double[ndOff.Count];
+            double[] detectedSystemNoisePwr =
+                new double[ndOff.Count];
 
-            noiseFigureDbwAvg = 0.0;
-            gainDbwAvg = 0.0;
+            double pkToPkAvg = PeakToPeakAvg(dwellTime, rbw);
+
+            meanNoiseFigureDbw = 0.0;
+            meanGainDbw = 0.0;
+            meanDetectedSysNoise = 0.0;
 
             // excess noise ratio in watts
             double enrW = DbwToWatts(excessNoiseRatio);
-            
+
             for (int i = 0; i < ndOn.Count; i++)
             {
                 // convert from logarithmic to linear units
@@ -50,28 +50,40 @@ namespace AgilentN6841A
                 double y = wattsNdOn / wattsNdOff;
 
                 // calculate noise figure
-                double noiseFigure = enrW / (y - 1);
-                noiseFigureWatts[i] = noiseFigure;
-                noiseFigureDbw[i] = WattsToDbw(noiseFigure);
-                // sum nosie figure for avg
-                noiseFigureDbwAvg += noiseFigureDbw[i];
+                double noiseFigureWatts = enrW / (y - 1);
+                noiseFigureDbw[i] = WattsToDbw(noiseFigureWatts);
+                // sum noise figure in watts for avg
+                meanNoiseFigureDbw += noiseFigureWatts;
 
                 // calculate gain
-                double gain = wattsNdOn /
-                    (this.K * T0 * enbw * (enrW + noiseFigure));
-                gainWatts[i] = gain;
-                gainDbw[i] = WattsToDbw(gain);
+                double gainWatts = wattsNdOn /
+                    (this.K * this.T0 * enbw * (enrW + noiseFigureWatts));
+                gainDbw[i] = WattsToDbw(gainWatts);
                 // sum gain for average
-                gainDbwAvg += gainDbw[i];
+                meanGainDbw += gainWatts;
 
                 // calculate mean power of receiver noise (Watts) 
-                double meanPwr = 1.38e-23 * (25 + 273.15) *
-                    enbw * noiseFigure * gain;
-                meanPowerDbm[i] = WattsToDbm(meanPwr);
-                }
-            
-            gainDbwAvg /= GainDbw.Length;
-            noiseFigureDbwAvg /= noiseFigureDbw.Length;
+                double meanPwrWatts = this.K * this.T0 *
+                    enbw * noiseFigureWatts * gainWatts;
+                meanPowerDbm[i] = WattsToDbm(meanPwrWatts * pkToPkAvg);
+                meanPowerDbm[i] = meanPowerDbm[i] + cableLoss -
+                    gainDbw[i] - antennaGain;
+                meanDetectedSysNoise += DbmToWatts(meanPowerDbm[i]);
+            }
+            // finish taking averages and convert back to Logarithmic units
+            meanGainDbw = WattsToDbw((meanGainDbw / GainDbw.Length));
+            meanNoiseFigureDbw = 
+                WattsToDbw((meanNoiseFigureDbw / noiseFigureDbw.Length));
+            meanDetectedSysNoise =
+                WattsToDbm((meanDetectedSysNoise / meanPowerDbm.Length));
+        }
+
+        // Calculates the peak-to-peak average ratio for spec analyzer
+        // positive-peak-detected measurement of Gaussian noise
+        private double PeakToPeakAvg(double dwellTime, double rbw)
+        {
+            return Math.Log(2 * Math.PI * dwellTime * 1.499 *
+                rbw * Math.E);
         }
 
         #region properties
@@ -90,24 +102,19 @@ namespace AgilentN6841A
             get { return meanPowerDbm; }
         }
 
-        public double[] NoiseFigureWatts
+        public double MeanGainDbw
         {
-            get { return noiseFigureWatts; }
+            get { return meanGainDbw; }
         }
 
-        public double[] GainWatts
+        public double MeanNoiseFigureDbw
         {
-            get { return gainWatts; }
+            get { return meanNoiseFigureDbw; }
         }
 
-        public double GainDbwAvg
+        public double MeanDetectedSysNoise
         {
-            get { return gainDbwAvg; }
-        }
-
-        public double NoiseFigureDbwAvg
-        {
-            get { return noiseFigureDbwAvg; }
+            get { return meanDetectedSysNoise; }
         }
         #endregion
 

@@ -1,14 +1,11 @@
 ﻿using AgilentN6841A;
 using SensorFrontEnd;
-using Logging;
 using System.ServiceProcess;
 using System.Threading;
 using System.Collections.Generic;
 using System;
-using JsonClasses;
-using System.Web;
+using System.Web.Script.Serialization;
 using System.IO;
-using System.Timers;
 using General;
 
 namespace Service
@@ -47,13 +44,13 @@ namespace Service
 
         protected override void OnStart(string[] args)
         {
-            Logger.logMessage("Radar Sensor Service started");
+            Utilites.logMessage("Radar Sensor Service started");
             base.OnStart(args);
         }
 
         protected override void OnStop()
         {
-            Logger.logMessage("Radar Sensor Service stopped by the user");
+            Utilites.logMessage("Radar Sensor Service stopped by the user");
             base.OnStop();
         }
 
@@ -62,46 +59,63 @@ namespace Service
         /// </summary>
         private void mainThread()
         {
+            // verify needed paths exits 
+            if (!Directory.Exists(Constants.MESSAGE_FILES_DIR))
+            {
+                Directory.CreateDirectory(Constants.MESSAGE_FILES_DIR);
+            }
+
+            if (!Directory.Exists(Constants.LOG_FILE_DIR))
+            {
+                Directory.CreateDirectory(Constants.LOG_FILE_DIR);
+            }
+
             SensorDriver sensor = new SensorDriver();
             TimedCount timer = new TimedCount();
+            bool initialCalComplete = false;
+
+            // create and write initial location message 
+            string locString = File.ReadAllText(Constants.LocMessage);
+            LocMessage locMessage = 
+                new JavaScriptSerializer().Deserialize<LocMessage>(locString);
+            locMessage.loadMessageFields();
+            Utilites.WriteMessageToFile(locMessage);
 
             while (true)
             {
-                if (timer.elaspedTime() >= SECONDS_IN_HOUR)
+                if (timer.elaspedTime() >= SECONDS_IN_HOUR ||
+                    !initialCalComplete)
                 {
                     timer.reset();
                     //Perform calibration
+                    // read in parameters for calibration
+                    SweepParams measParams;
+                    string json = 
+                        File.ReadAllText(Constants.Spn43CalSweepParamsFile);
+                    measParams =
+                        new JavaScriptSerializer().Deserialize<SweepParams>(
+                            json);
+                    SysMessage sysMessage = new SysMessage();
+                    sysMessage.loadMessageFields();
+
+                    bool err = sensor.performCal(measParams, sysMessage);
+                    if (err)
+                    {
+                        Utilites.logMessage("Error performing calibration, " +
+                            "cal aborted");
+                        // do not write SysMessage
+                        continue;
+                    }
+                    Utilites.WriteMessageToFile(sysMessage);
+                    Console.ReadLine();
+                    initialCalComplete = true;
                 }
                 else
                 {
                     // perform measurement
                 }
 
-                // read in parameters for calibration
-                SweepParams measParams;
-                string json = File.ReadAllText(Constants.Spn43CalSweepParamsFile);
-                measParams =
-                    new System.Web.Script.Serialization.
-                    JavaScriptSerializer().Deserialize<SweepParams>(
-                        json);
-
-                JsonClasses.SysMessage sysMessage = new SysMessage();
-
-                // create and write location message 
-                string locString = File.ReadAllText(Constants.LocMessage);
-                LocMessage locMessage = new System.Web.Script.Serialization.
-                JavaScriptSerializer().Deserialize<LocMessage>(locString);
-                locMessage.sensorId = Constants.SENSOR_HOST_NAME;
-                // get epoch time 
-                TimeSpan epochTime =
-                DateTime.UtcNow.Subtract(new DateTime(1970, 1, 1));
-                locMessage.time = (long)epochTime.TotalSeconds;
-
-                // perform calibration
-                bool calError = false;
-                sensor.performCal(measParams, sysMessage);
-
-                Console.ReadLine();
+                
             }
         }
 

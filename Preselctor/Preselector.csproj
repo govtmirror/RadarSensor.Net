@@ -53,7 +53,7 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Logging\General.csproj">
+    <ProjectReference Include="..\General\General.csproj">
       <Project>{6e3a2d10-f2b3-45a8-ab5b-c86c79919047}</Project>
       <Name>General</Name>
     </ProjectReference>

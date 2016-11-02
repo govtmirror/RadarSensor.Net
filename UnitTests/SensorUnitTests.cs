@@ -1,7 +1,6 @@
 ﻿using System;
 using AgilentN6841A;
 using General;
-using JsonClasses;
 using SensorFrontEnd;
 using System.IO;
 using System.Web;
@@ -127,8 +126,12 @@ namespace RadarSensorTests
                 -83.36923666, -83.47096435 
             };
 
-            double enrInput = 10.0; // db
-            double enbwInputs = 1e6; // Hz 
+            double enr = 10.0; // db
+            double enbw = 1e6; // Hz 
+            double cableLoss = 1.0;
+            double antennaGain = 1.0;
+            double rbw = 1e3;
+            double dwellTime = 0.0;
 
             // mean values of gain and noise figure arrays 
             // from noiseDiode on and off inputs
@@ -138,12 +141,13 @@ namespace RadarSensorTests
             double TOLERANCE = 0.1;
 
             Yfactor yFactor = new Yfactor(noiseDiodeOnInputs,
-                noiseDiodeOffInputs, enrInput, enbwInputs);
+                noiseDiodeOffInputs, rbw, enbw, dwellTime, enr, 
+                cableLoss, antennaGain);
 
-            Assert.IsTrue(Math.Abs(yFactor.NoiseFigureDbwAvg - 
+            Assert.IsTrue(Math.Abs(yFactor.MeanNoiseFigureDbw - 
                 expectedNoiseFigure) <= TOLERANCE);
 
-            Assert.IsTrue(Math.Abs(yFactor.GainDbwAvg - 
+            Assert.IsTrue(Math.Abs(yFactor.MeanGainDbw - 
                 expectedGain) <= TOLERANCE);
         }
 

@@ -1,9 +1,7 @@
 ﻿using System;
 using System.IO;
-using JsonClasses;
 using AgSal;
 using General;
-using Logging;
 using System.Collections.Generic;
 using System.Linq;
 using SensorFrontEnd;
@@ -11,13 +9,6 @@ using System.Threading;
 
 namespace AgilentN6841A
 {
-    public enum Mband
-    {
-        ASR = 0,  // 2.8 bypass 
-        BoatNav = 1, // 3.0 no bypass 
-        SPN43 = 1 // 3.5 bypass 
-    }
-
     public class SensorDriver
     {
         Preselector preselector = 
@@ -78,46 +69,58 @@ namespace AgilentN6841A
         /// <summary>
         /// 
         /// </summary>
-        /// <param name="band"> frequency band for measurement
-        /// </param>
-        public void performCal(SweepParams measParams, SysMessage sysMessage)
+        /// <param name="sweepParams"></param>
+        /// <param name="sysMessage"></param>
+        /// <returns>true if error</returns>
+        public bool performCal(SweepParams sweepParams, SysMessage sysMessage)
         {
             List<double> powerListNdOn = new List<double>();
             List<double> powerListNdOff = new List<double>();
 
             double attenuaiton;
 
-            if (measParams.Attenuation > MAX_ATTEN ||
-                measParams.Attenuation < MIN_ATTEN)
+            if (sweepParams.Attenuation > MAX_ATTEN ||
+                sweepParams.Attenuation < MIN_ATTEN)
             {
-                Logger.logMessage("Attenuation out of range for sensor");
-                return;
+                Utilites.logMessage("Attenuation out of range for sensor");
+                return true; ;
             }
             else
             {
-                measParams.MinAtten = measParams.Attenuation;
-                measParams.MaxAtten = measParams.Attenuation;
+                sweepParams.MinAtten = sweepParams.Attenuation;
+                sweepParams.MaxAtten = sweepParams.Attenuation;
             }
 
             // set filter 
-            if (measParams.sys2Detect.ToLower().Equals("spn43"))
+            if (sweepParams.sys2Detect.ToLower().Equals("spn43"))
             {
                 preselector.set3_5Filter();
             }
-            else if (measParams.sys2Detect.ToLower().Equals("boatnav"))
+            else if (sweepParams.sys2Detect.ToLower().Equals("boatnav"))
             {
                 preselector.set3_0Filter();
             }
-            else if (measParams.sys2Detect.ToLower().Equals("ASR"))
+            else if (sweepParams.sys2Detect.ToLower().Equals("ASR"))
             {
                 preselector.setBypass();
             }
             else
             {
-                Logger.logMessage("invalid sys2Detect " +
+                Utilites.logMessage("invalid sys2Detect " +
                     "in Measurement parameters object");
-                return;
+                return true;
             }
+
+            // Load sysMessage with sweepParam values
+            sysMessage.calibration.measurementParameters.detector =
+                sweepParams.Detector;
+            sysMessage.calibration.measurementParameters.window =
+                sweepParams.Window;
+            sysMessage.calibration.measurementParameters.attenuation =
+                sweepParams.Attenuation;
+            sysMessage.calibration.measurementParameters.videoBw = -1;
+            sysMessage.calibration.temp = preselector.getTemp();
+            // dwell time?
 
             // perfrom cal for number of attenuations
             // IS THIS necessary???
@@ -126,61 +129,51 @@ namespace AgilentN6841A
             //    / measParams.StepAtten;
             //for (int i = 0; i < iterations; i++)
             //{
-            FFTParams fftParams = new FFTParams(sensorCapabilities,
-                measParams, possibleSampleRates, possibleSpans);
+            FFTParams fftParams = 
+                new FFTParams(sensorCapabilities, sweepParams, 
+                possibleSampleRates, possibleSpans);
+
             if (fftParams.Error)
             {
                 // TODO figure out best was to handle error 
                 // with FFT calculations
-                Logger.logMessage("error calculating FFT Params");
-                return;
+                Utilites.logMessage("error calculating FFT Params");
+                return true;
             }
 
-            // populate SysMessage values
-            sysMessage.calibration.measurementParameters.resolutionBw =
-                fftParams.SampleRate / fftParams.NumFftBins;
-            sysMessage.calibration.measurementParameters.startFrequency =
-                fftParams.FrequencyList[0];
-            sysMessage.calibration.measurementParameters.stopFrequency =
-                fftParams.FrequencyList[fftParams.FrequencyList.Count - 1];
-            sysMessage.calibration.measurementParameters
-                .numOfFrequenciesInSweep = fftParams.FrequencyList.Count;
-            sysMessage.calibration.measurementParameters.detector =
-                measParams.Detector;
-            sysMessage.calibration.measurementParameters.window =
-                measParams.Window;
-            sysMessage.calibration.measurementParameters.attenuation =
-                measParams.Attenuation;
-            sysMessage.calibration.measurementParameters.videoBw = -1;
-            sysMessage.calibration.measurementParameters.
-                equivalentNoiseBw = fftParams.WindowValue *
-                fftParams.SampleRate / fftParams.NumFftBins;
-            sysMessage.calibration.temp = preselector.getTemp();
-            // dwell time?
+            // load sysMessage with fftParams and perfrom sweep for cal
+            fftParams.loadSysMessage(sysMessage);
 
-            preselector.setNdIn();
             // Perform sweep with calibrated noise source on
+            preselector.setNdIn();
             preselector.powerOnNd();
-            detectSpan(fftParams, powerListNdOn, measParams);
+            detectSpan(fftParams, powerListNdOn, sweepParams);
 
-            // perfrom sweet with calibrated noise source off
+            // perfrom sweep with calibrated noise source off
             preselector.powerOffNd();
-            detectSpan(fftParams, powerListNdOff, measParams);
+            detectSpan(fftParams, powerListNdOff, sweepParams);
 
             // Y-Factor Calibration
             Yfactor yFactorCal;
-            if (powerListNdOff.Count == powerListNdOn.Count) // sanity check
+            if (powerListNdOff.Count != powerListNdOn.Count) // sanity check
             {
-                yFactorCal = new Yfactor(powerListNdOn, powerListNdOff, 
-                    sysMessage.preselector.excessNoiseRatio, 
-                    (double)sysMessage.calibration.
-                    measurementParameters.equivalentNoiseBw);
+                Utilites.logMessage("Error getting sweep data.  " +
+                 "Noise diode on and off power list are different sizes");
+                return true;
             }
-            else
-            {
-                Logger.logMessage("Error getting sweep data.  " +
-                    "Noise diode on and off power list are different sizes");
-            }
+
+            yFactorCal = new Yfactor(powerListNdOn, powerListNdOff,
+                    (double)sysMessage.calibration.measurementParameters.resolutionBw,
+                    (double)sysMessage.calibration.measurementParameters.equivalentNoiseBw,
+                    sweepParams.DwellTime,
+                    sysMessage.preselector.excessNoiseRatio,
+                    sysMessage.antenna.cableLoss,
+                    sysMessage.antenna.gain);
+
+            sysMessage.calibration.processed = "true";
+            sysMessage.gain = yFactorCal.GainDbw;
+            sysMessage.noiseFigure = yFactorCal.NoseFigureDbw;
+            return false;
         }
         //}
         #endregion
@@ -208,6 +201,7 @@ namespace AgilentN6841A
                     cf, numFftsToCopy);
             }
         }
+
         private void detectSegment(SweepParams measParams, 
             FFTParams fftParams, List<double> powerList,
             double cf, uint numFftsToCopy)
@@ -317,7 +311,7 @@ namespace AgilentN6841A
                 TimeSpan elapsedTime = DateTime.Now.Subtract(t0);
                 if (elapsedTime.Milliseconds > maxDataReadMilliSeconds)
                 {
-                    Logger.logMessage("Getting segment data timed out, " +
+                    Utilites.logMessage("Getting segment data timed out, " +
                         "restarting Calibration");
                     this.performCal(measParams, new SysMessage());
                 }
@@ -334,7 +328,7 @@ namespace AgilentN6841A
                             string message = "Segment data header returned an error: \n\n";
                                 message += "errorNumber: " + dataHeader.errorNum.ToString() + "\n";
                                 message += "errorInfo:   " + dataHeader.errorInfo;
-                            Logger.logMessage(message);
+                            Utilites.logMessage(message);
                             // return an error 
                             break;
                         }
@@ -398,7 +392,7 @@ namespace AgilentN6841A
             {
                 message = functionName + " returned error " + err +
                     " (" + AgSalLib.salGetErrorString(err, AgSalLib.Localization.English) + ")\n";
-                Logger.logMessage(message);
+                Utilites.logMessage(message);
                 return true;
             }
             return false;
