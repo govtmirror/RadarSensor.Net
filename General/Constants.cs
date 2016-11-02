@@ -6,26 +6,50 @@ namespace General
 {
     public static class Constants
     {
+        // senser managment server ip address
         public static readonly string SMS_IP = "10.6.6.14";
+
         public static readonly string SENSOR_HOST_NAME = "RM3420B";
 
+        // web relay ip address 
         public static readonly string PRESELECTOR_IP = "10.6.6.22";
+
+        // path to store Messages as JSON file
+        public static readonly string MESSAGE_FILES_DIR
+            = @"C:\SpectrumMonitoring\Data";
+
+        // path to log file
+        public static readonly string LOG_FILE_DIR =
+           @"C:\RadarSensor";
+
+        public static readonly string TRANSFER_SPEC_VER =
+            "1.0.16";
 
         private static string currentDir =
     Directory.GetCurrentDirectory();
 
-        private static readonly string JSON_FILES = "jsonFiles";
+        // files that will be deserealized into a class at runtime
+        private static readonly string JSON_FILES_Dir = "jsonFiles";
 
+        // dir with csv files for unit tests
         private static readonly string
             UNIT_TEST_VALUES = "unitTestExpectedValues";
 
+        public static string LogFile
+        {
+            get
+            {
+                return Path.Combine(LOG_FILE_DIR, 
+                    "radarSensorLog.txt");
+            }
+        }
 
         public static string SysMessageFile
         {
             get
             {
                 return Path.Combine(currentDir,
-                    JSON_FILES, "SysMessage.json");
+                    JSON_FILES_Dir, "SysMessage.json");
             }
         }
 
@@ -34,7 +58,7 @@ namespace General
             get
             {
                 return Path.Combine(currentDir,
-                    JSON_FILES, "DataMessage.json");
+                    JSON_FILES_Dir, "DataMessage.json");
             }
         }
 
@@ -43,7 +67,7 @@ namespace General
             get
             {
                 return Path.Combine(currentDir,
-                    JSON_FILES, "LocMessage.json");
+                    JSON_FILES_Dir, "LocMessage.json");
             }
         }
 
@@ -52,7 +76,16 @@ namespace General
             get
             {
                 return Path.Combine(currentDir,
-                    JSON_FILES, "Antenna.json");
+                    JSON_FILES_Dir, "Antenna.json");
+            }
+        }
+
+        public static string CalibrationFile
+        {
+            get
+            {
+                return Path.Combine(currentDir,
+                    JSON_FILES_Dir, "Calibration.json");
             }
         }
 
@@ -61,7 +94,7 @@ namespace General
             get
             {
                 return Path.Combine(currentDir,
-                    JSON_FILES, "CotsSensor.json");
+                    JSON_FILES_Dir, "CotsSensor.json");
             }
         }
 
@@ -70,7 +103,7 @@ namespace General
             get
             {
                 return Path.Combine(currentDir,
-                    JSON_FILES, "Preselector.json");
+                    JSON_FILES_Dir, "Preselector.json");
             }
         }
 
@@ -79,7 +112,7 @@ namespace General
             get
             {
                 return Path.Combine(currentDir, 
-                    JSON_FILES, "spn43Cal.json");
+                    JSON_FILES_Dir, "spn43Cal.json");
             }
         }
 

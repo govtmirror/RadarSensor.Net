@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace JsonClasses
+namespace General
 {
     public class MeasurementParameters
     {

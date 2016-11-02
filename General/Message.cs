@@ -2,11 +2,18 @@
 using System.Web;
 using General;
 
-namespace JsonClasses
+namespace General
 {
     public class Message
     {
         public Message() { }
+
+        public void loadMessageFields()
+        {
+            version = Constants.TRANSFER_SPEC_VER;
+            sensorId = Constants.SENSOR_HOST_NAME;
+            time = Utilites.getEpochTime();
+        }
         
         public string version
         {
@@ -24,7 +31,7 @@ namespace JsonClasses
             set;
         }
 
-        public long sensorKey
+        public int? sensorKey
         {
             get; set;
         }

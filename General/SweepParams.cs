@@ -1,4 +1,4 @@
-﻿namespace JsonClasses
+﻿namespace General
 {
     public class SweepParams
     {
@@ -114,15 +114,7 @@
             set { stepAtten = value; }
         }
 
-        public double Enbw
-        {
-            get;
-            set;
-        }
-
         public string sys2Detect { get; set; }
         #endregion
-
-        public static void Main(string[] args) { }
     }
 }

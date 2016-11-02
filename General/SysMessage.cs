@@ -1,9 +1,8 @@
 ﻿using System;
 using System.IO;
-using System.Web;
-using General;
+using System.Web.Script.Serialization;
 
-namespace JsonClasses
+namespace General
 {
     public class SysMessage : Message
     {
@@ -11,20 +10,23 @@ namespace JsonClasses
         {
             string antennaString =
                 File.ReadAllText(Constants.AntennaFile);
-            antenna = new System.Web.Script.Serialization.
-            JavaScriptSerializer().Deserialize<Antenna>(antennaString);
+            antenna = 
+                new JavaScriptSerializer().Deserialize<Antenna>(antennaString);
 
             string preselectorString =
                 File.ReadAllText(Constants.PreselectorFile);
-            preselector = new System.Web.Script.Serialization.
-            JavaScriptSerializer().Deserialize<Preselector>(preselectorString);
+            preselector = 
+                new JavaScriptSerializer().Deserialize<Preselector>(preselectorString);
 
             string sensorString = 
                 File.ReadAllText(Constants.CotsSensorFile);
-            cotsSensor = new System.Web.Script.Serialization.
-            JavaScriptSerializer().Deserialize<CotsSensor>(sensorString);
+            cotsSensor = 
+                new JavaScriptSerializer().Deserialize<CotsSensor>(sensorString);
 
-            calibration = new Calibration();
+            string calString =
+                File.ReadAllText(Constants.CalibrationFile);
+            calibration =
+                new JavaScriptSerializer().Deserialize<Calibration>(calString);
 
             messageType = "Sys";
         }
@@ -41,10 +43,10 @@ namespace JsonClasses
         public double[] noiseSourceOffPowers { get; set; }
 
         // noise figure referenced to input of preselector
-        public double? noiseFigure { get; set; }
+        public double[] noiseFigure { get; set; }
 
         // system gain referenced to input of preselector
-        public double? gain { get; set; }
+        public double[] gain { get; set; }
 
         public class Antenna
         {
@@ -161,6 +163,11 @@ namespace JsonClasses
 
             // compression of data 
             public string compression { get; set; }
+        }
+
+        public override string ToString()
+        {
+            return "SysMessage";
         }
     }
 }

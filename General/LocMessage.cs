@@ -1,13 +1,13 @@
 ﻿using System;
 
 
-namespace JsonClasses
+namespace General
 {
     public class LocMessage : Message
     {
-        public LocMessage() : base()
+        public LocMessage()
         {
-      
+            messageType = "Loc";
         }
 
         public string mobility
@@ -15,7 +15,7 @@ namespace JsonClasses
             get; set;
         }
 
-        public string environmnet
+        public string environment
         {
             get; set;
         }
@@ -38,6 +38,11 @@ namespace JsonClasses
         public string timeZone
         {
             get; set;
+        }
+
+        public override string ToString()
+        {
+            return "LocMessage";
         }
     }
 }
