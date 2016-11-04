@@ -143,5 +143,41 @@ namespace General
                     UNIT_TEST_VALUES, "frequencyListExpectedValues.csv");
             }
         }
+
+        public static string NoiseDiodeOffInputs
+        {
+            get
+            {
+                return Path.Combine(currentDir,
+                    UNIT_TEST_VALUES, "ndOffInputValues.csv");
+            }
+        }
+
+        public static string NoiseDiodeOnInputs
+        {
+            get
+            {
+                return Path.Combine(currentDir,
+                    UNIT_TEST_VALUES, "ndOnInputValues.csv");
+            }
+        }
+
+        public static string ExpectedNoiseFigure
+        {
+            get
+            {
+                return Path.Combine(currentDir,
+                    UNIT_TEST_VALUES, "expectedNoiseFigure.csv");
+            }
+        }
+
+        public static string ExcpectedGain
+        {
+            get
+            {
+                return Path.Combine(currentDir,
+                    UNIT_TEST_VALUES, "expectedGain.csv");
+            }
+        }
     }
 }

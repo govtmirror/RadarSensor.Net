@@ -99,9 +99,9 @@ namespace RadarSensorTests
             Assert.IsTrue(fftParams.NumBinsLastSegment ==
                 numValidFftBinsLastSeg);
 
-            GetListOfFreqs(centerFrequencies, 
+            GetListOfValuesFromCsv(centerFrequencies, 
                 Constants.CenterFrequencyValues);
-            GetListOfFreqs(frequencies, Constants.FrequeencyValues);
+            GetListOfValuesFromCsv(frequencies, Constants.FrequeencyValues);
 
             Assert.IsTrue(centerFrequencies.SequenceEqual(
                 fftParams.CenterFrequencies));
@@ -112,6 +112,7 @@ namespace RadarSensorTests
         [TestMethod]
         public void YfactorCalTest()
         {
+            // Test 1 -----------------------------------------
             List<double> noiseDiodeOffInputs = new List<double>
             { 
                 -89.77223497, -89.59538809, -89.81342543, -89.63387354, 
@@ -138,7 +139,7 @@ namespace RadarSensorTests
             double expectedGain = 19.1730796;
             double expectedNoiseFigure = 5.0;
             
-            double TOLERANCE = 0.1;
+            double TOLERANCE = 0.2;
 
             YfactorCal yFactor = new YfactorCal(noiseDiodeOnInputs,
                 noiseDiodeOffInputs, rbw, enbw, dwellTime, enr, 
@@ -149,10 +150,54 @@ namespace RadarSensorTests
 
             Assert.IsTrue(Math.Abs(yFactor.MeanGainDbw - 
                 expectedGain) <= TOLERANCE);
+
+            // Test 2 --------------------------------------------
+            List<double> noiseDiodeOffInputs2 = new List<double>();
+            List<double> noiseDiodeOnInputs2 = new List<double>();
+
+            GetListOfValuesFromCsv(noiseDiodeOffInputs2,
+                Constants.NoiseDiodeOffInputs);
+            GetListOfValuesFromCsv(noiseDiodeOnInputs2,
+                Constants.NoiseDiodeOnInputs);
+            double rbw2 = 437500;
+            double enbw2 = 962500;
+            double dwellTime2 = 0.1;
+            double enr2 = 14.46;
+            double gain2 = 1.5;
+            double cableLoss2 = 0.8;
+            double antennaGain2 = -1;
+
+            YfactorCal yFactor2 = new YfactorCal(noiseDiodeOnInputs2,
+                noiseDiodeOffInputs2, rbw2, enbw2, dwellTime2,
+                enr2, cableLoss2, antennaGain2);
+
+            List<double> expectedNoiseFigure2 = new List<double>();
+            List<double> expectedGain2 = new List<double>();
+
+            GetListOfValuesFromCsv(expectedNoiseFigure2,
+                Constants.ExpectedNoiseFigure);
+            GetListOfValuesFromCsv(expectedGain2,
+                Constants.ExcpectedGain);
+
+            double meanExpectedNoiseFigure2 = 0;
+            double meanExpectedGain2 = 0;
+
+            for (int i = 0; i < expectedGain2.Count; i++)
+            {
+                meanExpectedGain2 += expectedGain2[i];
+                meanExpectedNoiseFigure2 += expectedNoiseFigure2[i];
+            }
+            meanExpectedNoiseFigure2 /= expectedNoiseFigure2.Count;
+            meanExpectedGain2 /= expectedGain2.Count;
+
+            Assert.IsTrue(Math.Abs(yFactor2.MeanGainDbw -
+                meanExpectedGain2) <= TOLERANCE);
+            Assert.IsTrue(Math.Abs(yFactor2.MeanNoiseFigureDbw -
+                meanExpectedNoiseFigure2) <= TOLERANCE);
         }
 
         // reads csv file into List<double>
-        private void GetListOfFreqs(List<double> frequencies, 
+        private void GetListOfValuesFromCsv(List<double> vals, 
             string path) 
         {
             var reader = new StreamReader(File.OpenRead(path));
@@ -162,7 +207,7 @@ namespace RadarSensorTests
                 string[] values = line.Split(',');
                 for (int i = 0; i < values.Length; i++)
                 {
-                    frequencies.Add(Double.Parse(values[i]));
+                    vals.Add(Double.Parse(values[i]));
                 }
             }
         }
