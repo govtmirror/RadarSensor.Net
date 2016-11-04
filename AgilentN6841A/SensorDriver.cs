@@ -69,46 +69,49 @@ namespace AgilentN6841A
         /// <summary>
         /// 
         /// </summary>
-        /// <param name="sweepParams"></param>
+        /// <param name="calParams"></param>
         /// <param name="sysMessage"></param>
         /// <returns>true if error</returns>
-        public bool PerformCal(SweepParams sweepParams, SysMessage sysMessage)
+        public void PerformCal(SweepParams calParams, 
+            SysMessage sysMessage, out YfactorCal yFactorCal)
         {
             List<double> powerListNdOn = new List<double>();
             List<double> powerListNdOff = new List<double>();
 
             double attenuaiton;
 
-            if (sweepParams.Attenuation > MAX_ATTEN ||
-                sweepParams.Attenuation < MIN_ATTEN)
+            if (calParams.Attenuation > MAX_ATTEN ||
+                calParams.Attenuation < MIN_ATTEN)
             {
-                Utilites.logMessage("Attenuation out of range for sensor");
-                return true; ;
+                Utilites.LogMessage("Attenuation out of range for sensor");
+                yFactorCal = null;
+                return;
             }
             else
             {
-                sweepParams.MinAtten = sweepParams.Attenuation;
-                sweepParams.MaxAtten = sweepParams.Attenuation;
+                calParams.MinAtten = calParams.Attenuation;
+                calParams.MaxAtten = calParams.Attenuation;
             }
 
             // set filter 
-            bool err = SetFilter(sweepParams.sys2Detect);
+            bool err = SetFilter(calParams.sys2Detect);
             if (err)
             {
-                return true;
+                yFactorCal = null;
+                return;
             }
 
             // Load sysMessage with sweepParam values
             sysMessage.calibration.measurementParameters.detector =
-                sweepParams.Detector;
+                calParams.Detector;
             sysMessage.calibration.measurementParameters.window =
-                sweepParams.Window;
+                calParams.Window;
             sysMessage.calibration.measurementParameters.attenuation =
-                sweepParams.Attenuation;
+                calParams.Attenuation;
             sysMessage.calibration.measurementParameters.videoBw = -1;
             sysMessage.calibration.temp = preselector.GetTemp();
             sysMessage.calibration.measurementParameters.dwellTime =
-                sweepParams.DwellTime;
+                calParams.DwellTime;
 
             // perfrom cal for number of attenuations
             // IS THIS necessary???
@@ -118,13 +121,14 @@ namespace AgilentN6841A
             //for (int i = 0; i < iterations; i++)
             //{
             FFTParams fftParams = 
-                new FFTParams(sensorCapabilities, sweepParams, 
+                new FFTParams(sensorCapabilities, calParams, 
                 possibleSampleRates, possibleSpans);
 
             if (fftParams.Error)
             {
-                Utilites.logMessage("error calculating FFT Params");
-                return true;
+                Utilites.LogMessage("error calculating FFT Params");
+                yFactorCal = null;
+                return;
             }
 
             // load sysMessage with fftParams and perfrom sweep for cal
@@ -133,39 +137,71 @@ namespace AgilentN6841A
             // Perform sweep with calibrated noise source on
             preselector.SetNdIn();
             preselector.PowerOnNd();
-            DetectSpan(fftParams, powerListNdOn, sweepParams);
+            err = DetectSpan(fftParams, powerListNdOn, calParams);
+            if (err)
+            {
+                yFactorCal = null;
+                return;
+            }
 
             // perfrom sweep with calibrated noise source off
             preselector.PowerOffNd();
-            DetectSpan(fftParams, powerListNdOff, sweepParams);
-
-            // Y-Factor Calibration
-            Yfactor yFactorCal;
-            if (powerListNdOff.Count != powerListNdOn.Count) // sanity check
+            err = DetectSpan(fftParams, powerListNdOff, calParams);
+            if (err)
             {
-                Utilites.logMessage("Error getting sweep data.  " +
-                 "Noise diode on and off power list are different sizes");
-                return true;
+                yFactorCal = null;
+                return;
             }
 
-            yFactorCal = new Yfactor(powerListNdOn, powerListNdOff,
+            // Y-Factor Calibration
+            if (powerListNdOff.Count != powerListNdOn.Count) // sanity check
+            {
+                Utilites.LogMessage("Error getting sweep data.  " +
+                 "Noise diode on and off power list are different sizes");
+                yFactorCal = null;
+                return;
+            }
+
+            yFactorCal = new YfactorCal(powerListNdOn, powerListNdOff,
                     (double)sysMessage.calibration.measurementParameters.resolutionBw,
                     (double)sysMessage.calibration.measurementParameters.equivalentNoiseBw,
-                    sweepParams.DwellTime,
+                    calParams.DwellTime,
                     sysMessage.preselector.excessNoiseRatio,
                     sysMessage.antenna.cableLoss,
                     sysMessage.antenna.gain);
 
-            sysMessage.calibration.processed = "true";
+            sysMessage.calibration.processed = true;
             sysMessage.gain = yFactorCal.GainDbw;
             sysMessage.noiseFigure = yFactorCal.NoseFigureDbw;
-            return false;
         }
         //}
+
+        /// <summary>
+        /// Performs a multi-segment detection with a Keysight N6841A sensor 
+        /// and applies variable attenuation when overload occurs.
+        /// </summary>
+        /// <param name="sweepParams"></param>
+        /// <param name="dataMessage"></param>
+        public bool performMeasurement(SweepParams sweepParams, 
+            DataMessage dataMessage, YfactorCal yFactorCal)
+        {
+            FFTParams fftParams = new FFTParams(sensorCapabilities,
+                sweepParams, possibleSampleRates, possibleSpans);
+
+            if (fftParams.Error)
+            {
+                Utilites.LogMessage("error calculating FFT Params");
+                return true;
+            }
+            // set filter 
+            bool err = SetFilter(sweepParams.sys2Detect);
+
+            return false;
+        }
         #endregion
 
         #region private methods 
-        private void DetectSpan(FFTParams fftParams, 
+        private bool DetectSpan(FFTParams fftParams, 
             List<double> powerList, SweepParams measParams)
         {
             // detect over span
@@ -183,12 +219,17 @@ namespace AgilentN6841A
                     numFftsToCopy = fftParams.NumValidFftBins;
                 }
               
-                DetectSegment(measParams, fftParams, powerList,
+                bool err = DetectSegment(measParams, fftParams, powerList,
                     cf, numFftsToCopy);
+                if (err)
+                {
+                    return true;
+                }
             }
+            return false;
         }
 
-        private void DetectSegment(SweepParams measParams, 
+        private bool DetectSegment(SweepParams measParams, 
             FFTParams fftParams, List<double> powerList,
             double cf, uint numFftsToCopy)
         {
@@ -198,54 +239,75 @@ namespace AgilentN6841A
             AgSalLib.FrequencySegment[] fs 
                 = new AgSalLib.FrequencySegment[1];
 
-            switch(measParams.Window)
+            switch(measParams.Window.ToLower())
             {
-                case "Hanning": sweepParams.window =
+                case "hanning": sweepParams.window =
                         AgSalLib.WindowType.Window_hann;
                     break;
-                case "Gauss-Top": sweepParams.window =
+                case "gauss-top": sweepParams.window =
                         AgSalLib.WindowType.Window_gaussTop;
                     break;
-                case "Flattop": sweepParams.window =
+                case "flattop": sweepParams.window =
                         AgSalLib.WindowType.Window_flatTop;
                     break;
-                case "Rectangular": sweepParams.window =
+                case "rectangular": sweepParams.window =
                         AgSalLib.WindowType.Window_uniform;
                     break;
+                default:
+                    Utilites.LogMessage("Invalid window type in " +
+                        "calibration json file");
+                    return true;
             }
+
             switch (measParams.TimeOverlap)
             {
-                case 0: fs[0].overlapType = 
+                case 0:
+                    fs[0].overlapType = 
                         AgSalLib.OverlapType.OverlapType_on;
                     break;
-                default: fs[0].overlapType =
+                default:
+                    fs[0].overlapType =
                         AgSalLib.OverlapType.OverlapType_off;
                     break;
             }
-            switch (measParams.Detector)
+
+            switch (measParams.Detector.ToLower())
             {
-                case "RMS": fs[0].averageType =
+                case "rms": fs[0].averageType =
                         AgSalLib.AverageType.Average_rms;
                     break;
-                case "Sample": fs[0].averageType =
+                case "sample": fs[0].averageType =
                         AgSalLib.AverageType.Average_off;
                     break;
-                case "Positive": fs[0].averageType =
+                case "positive": fs[0].averageType =
                         AgSalLib.AverageType.Average_peak;
                     break;
+                default:
+                    Utilites.LogMessage("Invalid Detector type in " +
+                        "calibration json file");
+                    return true;
             }
+
             switch (measParams.Antenna)
             {
-                case 0: fs[0].antenna = 
+                case 0:
+                    fs[0].antenna = 
                         AgSalLib.AntennaType.Antenna_Terminated2;
                     break;
-                case 1: fs[0].antenna =
+                case 1:
+                    fs[0].antenna =
                         AgSalLib.AntennaType.Antenna_1;
                     break;
-                case 2: fs[0].antenna =
+                case 2:
+                    fs[0].antenna =
                         AgSalLib.AntennaType.Antenna_2;
                     break;
+                default:
+                    Utilites.LogMessage("Invalid antenna value " +
+                        "in cal json file");
+                    return true;
             }
+
             sweepParams.numSweeps = 1;
             sweepParams.numSegments = 1;
             sweepParams.monitorMode = AgSalLib.MonitorMode.MonitorMode_off;
@@ -269,7 +331,7 @@ namespace AgilentN6841A
                 ref sweepParams, ref fs, ref flowControl, null);
             if (SensorError(err, "salStartSweep"))
             {
-                return;
+                return true;
             }
 
             AgSalLib.SweepStatus status;
@@ -288,7 +350,7 @@ namespace AgilentN6841A
             float[] frequencyData = new float[fftParams.NumFftBins];
 
             // how long to read before exiting
-            int maxDataReadMilliSeconds = 100;
+            int maxDataReadMilliSeconds = 1000;
             DateTime t0 = DateTime.Now;
             bool dataRetrieved = false;
 
@@ -297,9 +359,9 @@ namespace AgilentN6841A
                 TimeSpan elapsedTime = DateTime.Now.Subtract(t0);
                 if (elapsedTime.Milliseconds > maxDataReadMilliSeconds)
                 {
-                    Utilites.logMessage("Getting segment data timed out, " +
-                        "restarting Calibration");
-                    this.PerformCal(measParams, new SysMessage());
+                    Utilites.LogMessage("Getting segment data timed out, " +
+                        "restarting cal");
+                    //PerformCal(measParams, new SysMessage(), out yFactorCal);
                 }
 
                 err = AgSalLib.salGetSegmentData(measHandle, 
@@ -314,9 +376,8 @@ namespace AgilentN6841A
                             string message = "Segment data header returned an error: \n\n";
                                 message += "errorNumber: " + dataHeader.errorNum.ToString() + "\n";
                                 message += "errorInfo:   " + dataHeader.errorInfo;
-                            Utilites.logMessage(message);
-                            // return an error 
-                            break;
+                            Utilites.LogMessage(message);
+                            return true;
                         }
                         //get the data 
                         // cast frequencyData as doubles and add to powerLists 
@@ -324,6 +385,8 @@ namespace AgilentN6841A
                         powerList, numFftsToCopy);
                         dataRetrieved = true;
                         break;
+
+                        // TODO:  If measurement calculate frequencies 
 
                     case AgSalLib.SalError.SAL_ERR_NO_DATA_AVAILABLE:
                         // data is not available yet ... 
@@ -334,6 +397,7 @@ namespace AgilentN6841A
                         break;
                 }
             }
+            return false;
         }
 
         private bool SetFilter(string sys2Detect)
@@ -352,7 +416,7 @@ namespace AgilentN6841A
             }
             else
             {
-                Utilites.logMessage("invalid sys2Detect " +
+                Utilites.LogMessage("invalid sys2Detect " +
                     "in Measurement parameters object");
                 return true;
             }
@@ -401,7 +465,7 @@ namespace AgilentN6841A
             {
                 message = functionName + " returned error " + err +
                     " (" + AgSalLib.salGetErrorString(err, AgSalLib.Localization.English) + ")\n";
-                Utilites.logMessage(message);
+                Utilites.LogMessage(message);
                 return true;
             }
             return false;

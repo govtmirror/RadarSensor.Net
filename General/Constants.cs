@@ -116,6 +116,15 @@ namespace General
             }
         }
 
+        public static string Spn43MeasurementFile
+        {
+            get
+            {
+                return Path.Combine(currentDir,
+                    JSON_FILES_Dir, "spn43Sweep.json");
+            }
+        }
+
         // Expected value files for unit tests
         public static string CenterFrequencyValues
         {

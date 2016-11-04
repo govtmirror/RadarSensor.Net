@@ -4,7 +4,7 @@ using General;
 
 namespace AgilentN6841A
 {
-    public class Yfactor
+    public class YfactorCal
     {
         // Boltzmann's constant
         private double K = 1.38e-23;
@@ -19,7 +19,7 @@ namespace AgilentN6841A
         private double meanGainDbw;
         private double meanDetectedSysNoise;
 
-        public Yfactor(List<double> ndOn, List<double> ndOff, 
+        public YfactorCal(List<double> ndOn, List<double> ndOff, 
             double rbw, double enbw, double dwellTime, 
             double excessNoiseRatio, double cableLoss, 
             double antennaGain)

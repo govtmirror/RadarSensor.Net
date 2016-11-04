@@ -44,13 +44,13 @@ namespace Service
 
         protected override void OnStart(string[] args)
         {
-            Utilites.logMessage("Radar Sensor Service started");
+            Utilites.LogMessage("Radar Sensor Service started");
             base.OnStart(args);
         }
 
         protected override void OnStop()
         {
-            Utilites.logMessage("Radar Sensor Service stopped by the user");
+            Utilites.LogMessage("Radar Sensor Service stopped by the user");
             base.OnStop();
         }
 
@@ -73,6 +73,8 @@ namespace Service
             SensorDriver sensor = new SensorDriver();
             TimedCount timer = new TimedCount();
             bool initialCalComplete = false;
+            YfactorCal yFactorCal = null;
+            int numOfMeasurements = 0;
 
             // create and write initial location message 
             string locString = File.ReadAllText(Constants.LocMessage);
@@ -85,39 +87,47 @@ namespace Service
             {
                 if (timer.elaspedTime() >= SECONDS_IN_HOUR ||
                     !initialCalComplete)
-                {
-                    timer.reset();
+                {    
                     //Perform calibration
                     // read in parameters for calibration
-                    SweepParams measParams;
-                    string json = 
+                    SweepParams calParams;
+                    string jsonString = 
                         File.ReadAllText(Constants.Spn43CalSweepParamsFile);
-                    measParams =
+                    calParams =
                         new JavaScriptSerializer().Deserialize<SweepParams>(
-                            json);
+                            jsonString);
 
                     SysMessage sysMessage = new SysMessage();
                     sysMessage.loadMessageFields();
 
-                    bool err = sensor.PerformCal(measParams, sysMessage);
-                    if (err)
+                    sensor.PerformCal(calParams, sysMessage, out yFactorCal);
+                    if (yFactorCal == null)
                     {
-                        Utilites.logMessage("Error performing calibration, " +
+                        Utilites.LogMessage("Error performing calibration, " +
                             "cal aborted");
                         // do not write SysMessage
                         continue;
                     }
                     Utilites.WriteMessageToFile(sysMessage);
-                    Console.ReadLine();
-                    timer.reset();
+                    //Console.ReadLine();
                     initialCalComplete = true;
+                    timer.reset();
+                    numOfMeasurements = 0;
                 }
                 else
                 {
-                    // perform measurement
-                }
+                    if (yFactorCal == null) { continue; }
 
-                
+                    // perform measurement
+                    DataMessage dataMessage = new DataMessage();
+                    SweepParams sweepParams;
+                    string jsonString =
+                        File.ReadAllText(Constants.Spn43MeasurementFile);
+                    sweepParams =
+                        new JavaScriptSerializer().Deserialize<SweepParams>(
+                            jsonString);
+                    sensor.performMeasurement(sweepParams, dataMessage, yFactorCal);
+                }          
             }
         }
 

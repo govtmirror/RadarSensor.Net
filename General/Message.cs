@@ -12,7 +12,7 @@ namespace General
         {
             version = Constants.TRANSFER_SPEC_VER;
             sensorId = Constants.SENSOR_HOST_NAME;
-            time = Utilites.getEpochTime();
+            time = Utilites.GetEpochTime();
         }
         
         public string version

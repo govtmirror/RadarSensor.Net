@@ -21,14 +21,14 @@ namespace RadarSensorTests
             
             for (int i = 0; i < dbmnInputVals.Length; i++)
             {
-                Assert.AreEqual(Yfactor.DbmToWatts(dbmnInputVals[i]),
+                Assert.AreEqual(YfactorCal.DbmToWatts(dbmnInputVals[i]),
                     expectedWattValues[i]);
             }
 
             double dbmInputVal = 25.0;
             double dbmExpectedVal = 0.316227766;
             double tolerance = .00001;
-            Assert.IsTrue(Math.Abs(Yfactor.DbmToWatts(dbmInputVal) - 
+            Assert.IsTrue(Math.Abs(YfactorCal.DbmToWatts(dbmInputVal) - 
                 dbmExpectedVal) <= tolerance);       
         }
 
@@ -40,7 +40,7 @@ namespace RadarSensorTests
 
             for (int i = 0; i < wattsInputVals.Length; i++)
             {
-                Assert.AreEqual(Yfactor.WattsToDbm(wattsInputVals[i]),
+                Assert.AreEqual(YfactorCal.WattsToDbm(wattsInputVals[i]),
                     expectedDbmValues[i]);
             }
         }
@@ -52,7 +52,7 @@ namespace RadarSensorTests
             double wattInput = 15.0;
             double expectedValue = 11.7609;
 
-            Assert.IsTrue(Math.Abs(Yfactor.WattsToDbw(wattInput) -
+            Assert.IsTrue(Math.Abs(YfactorCal.WattsToDbw(wattInput) -
                 expectedValue) <= TOLERANCE);
         }
 
@@ -62,7 +62,7 @@ namespace RadarSensorTests
             double TOLERANCE = 0.01;
             double dbwInput = 14.46;
             double expectedValue = 27.9254;
-            Assert.IsTrue(Math.Abs(Yfactor.DbwToWatts(dbwInput) -
+            Assert.IsTrue(Math.Abs(YfactorCal.DbwToWatts(dbwInput) -
                 expectedValue) <= TOLERANCE);
         }
 
@@ -140,7 +140,7 @@ namespace RadarSensorTests
             
             double TOLERANCE = 0.1;
 
-            Yfactor yFactor = new Yfactor(noiseDiodeOnInputs,
+            YfactorCal yFactor = new YfactorCal(noiseDiodeOnInputs,
                 noiseDiodeOffInputs, rbw, enbw, dwellTime, enr, 
                 cableLoss, antennaGain);
 

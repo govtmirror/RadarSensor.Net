@@ -27,8 +27,6 @@ namespace General
                 File.ReadAllText(Constants.CalibrationFile);
             calibration =
                 new JavaScriptSerializer().Deserialize<Calibration>(calString);
-
-            messageType = "Sys";
         }
 
         public Antenna antenna;
@@ -155,7 +153,7 @@ namespace General
             // number of measurments per calibration
             public int? numOfMeasurementsPerCal { get; set; }
 
-            public string processed { get; set; }
+            public bool processed { get; set; }
 
             public string dataType { get; set; }
 

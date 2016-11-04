@@ -31,7 +31,7 @@ namespace General
             }
             else
             {
-                logMessage("Invalid type of Message Object");
+                LogMessage("Invalid type of Message Object");
                 return;
             }
 
@@ -45,14 +45,14 @@ namespace General
             System.IO.File.WriteAllText(path, messageJsonString);
         }
 
-        public static long getEpochTime()
+        public static long GetEpochTime()
         {
             return (long)DateTime.UtcNow.Subtract(new 
                 DateTime(1970, 1, 1)).TotalMilliseconds;
             
         }
 
-        public static void logMessage(string msg)
+        public static void LogMessage(string msg)
         {
             Console.WriteLine("Logging message");
             StreamWriter w = File.AppendText(Constants.LogFile);

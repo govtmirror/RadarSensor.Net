@@ -7,7 +7,6 @@ namespace General
     {
         public LocMessage()
         {
-            messageType = "Loc";
         }
 
         public string mobility

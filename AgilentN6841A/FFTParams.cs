@@ -176,7 +176,7 @@ namespace AgilentN6841A
             if (numFftBins < sensorCapabilities.fftMinBlocksize ||
                 numFftBins > sensorCapabilities.fftMaxBlocksize)
             {
-                Utilites.logMessage("FFT block size is out of range");
+                Utilites.LogMessage("FFT block size is out of range");
                 error = true;
             }
             // determine number of valid fft bins not affected by 
@@ -197,7 +197,7 @@ namespace AgilentN6841A
             if (numValidFftBins < sensorCapabilities.fftMinBlocksize ||
                 numValidFftBins > sensorCapabilities.fftMaxBlocksize)
             {
-                Utilites.logMessage("numValidFftBins is out of range");
+                Utilites.LogMessage("numValidFftBins is out of range");
                 error = true;
             }
 
@@ -236,7 +236,7 @@ namespace AgilentN6841A
                 if (cf < sensorCapabilities.minFrequency ||
                     cf > sensorCapabilities.maxFrequency)
                 {
-                    Utilites.logMessage("center frequency is invalid: "
+                    Utilites.LogMessage("center frequency is invalid: "
                         + "\n" + "index " + i + " " + cf);
                     error = true;
                     return;

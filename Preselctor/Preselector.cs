@@ -117,7 +117,7 @@ namespace SensorFrontEnd
             if (!ipMatcher.IsMatch(ip))
             {
                 Console.WriteLine("invalid ip");
-                Utilites.logMessage("X300 relay initialized with invalid ip address");
+                Utilites.LogMessage("X300 relay initialized with invalid ip address");
                 Environment.Exit(0);
             }
         }
@@ -135,13 +135,13 @@ namespace SensorFrontEnd
                 relayState = xmlReader.ReadElementContentAsInt();
                 if (relayState != state)
                 {
-                    Utilites.logMessage("relay in invalid state");
+                    Utilites.LogMessage("relay in invalid state");
                     return false;
                 }
             }
             else
             {
-                Utilites.logMessage("Invalid XML when verifiyng relay " +
+                Utilites.LogMessage("Invalid XML when verifiyng relay " +
                     "was changed to correct state");
                 return false;
             }
@@ -167,7 +167,7 @@ namespace SensorFrontEnd
             }
             else
             {
-                Utilites.logMessage("Invalid XML when reading " +
+                Utilites.LogMessage("Invalid XML when reading " +
                     "temperature from sensor1");
                 temp = double.MinValue;
             }
