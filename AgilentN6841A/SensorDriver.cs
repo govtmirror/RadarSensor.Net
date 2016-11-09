@@ -242,16 +242,16 @@ namespace AgilentN6841A
             switch(measParams.Window.ToLower())
             {
                 case "hanning": sweepParams.window =
-                        AgSalLib.WindowType.Window_hann;
+                       sweepParams.window = AgSalLib.WindowType.Window_hann;
                     break;
                 case "gauss-top": sweepParams.window =
-                        AgSalLib.WindowType.Window_gaussTop;
+                        sweepParams.window = AgSalLib.WindowType.Window_gaussTop;
                     break;
                 case "flattop": sweepParams.window =
-                        AgSalLib.WindowType.Window_flatTop;
+                        sweepParams.window = AgSalLib.WindowType.Window_flatTop;
                     break;
                 case "rectangular": sweepParams.window =
-                        AgSalLib.WindowType.Window_uniform;
+                        sweepParams.window = AgSalLib.WindowType.Window_uniform;
                     break;
                 default:
                     Utilites.LogMessage("Invalid window type in " +
@@ -261,7 +261,7 @@ namespace AgilentN6841A
 
             switch (measParams.TimeOverlap)
             {
-                case 0:
+                case 50:
                     fs[0].overlapType = 
                         AgSalLib.OverlapType.OverlapType_on;
                     break;
@@ -274,13 +274,13 @@ namespace AgilentN6841A
             switch (measParams.Detector.ToLower())
             {
                 case "rms": fs[0].averageType =
-                        AgSalLib.AverageType.Average_rms;
+                        fs[0].averageType = AgSalLib.AverageType.Average_rms;
                     break;
                 case "sample": fs[0].averageType =
-                        AgSalLib.AverageType.Average_off;
+                        fs[0].averageType = AgSalLib.AverageType.Average_off;
                     break;
                 case "positive": fs[0].averageType =
-                        AgSalLib.AverageType.Average_peak;
+                        fs[0].averageType = AgSalLib.AverageType.Average_peak;
                     break;
                 default:
                     Utilites.LogMessage("Invalid Detector type in " +
@@ -311,7 +311,7 @@ namespace AgilentN6841A
             sweepParams.numSweeps = 1;
             sweepParams.numSegments = 1;
             sweepParams.monitorMode = AgSalLib.MonitorMode.MonitorMode_off;
-            sweepParams.monitorInterval = 0.5f;
+            // data return type for sweepParams is always real float32 dbm
 
             fs[0].numFftPoints = fftParams.NumFftBins;
             fs[0].numAverages = fftParams.NumFftsToAvg;
@@ -321,6 +321,7 @@ namespace AgilentN6841A
             fs[0].sampleRate = fftParams.SampleRate;
             fs[0].preamp = measParams.PreAmp;
             fs[0].attenuation = measParams.Attenuation;
+            fs[0].dataType = AgSalLib.FftDataType.FftData_db;
 
             // Setup pacing
             AgSalLib.salFlowControl flowControl = new AgSalLib.salFlowControl();
