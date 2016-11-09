@@ -193,7 +193,7 @@ namespace AgilentN6841A
                 validSpanRaito = sensorCapabilities.sampleRateToSpanRatio;
             }
 
-            numValidFftBins = floorEven(numFftBins / validSpanRaito);
+            numValidFftBins = Utilites.floorEven(numFftBins / validSpanRaito);
             if (numValidFftBins < sensorCapabilities.fftMinBlocksize ||
                 numValidFftBins > sensorCapabilities.fftMaxBlocksize)
             {
@@ -286,20 +286,6 @@ namespace AgilentN6841A
             sysMessage.calibration.measurementParameters.
                 equivalentNoiseBw = 
                 WindowValue * SampleRate / NumFftBins;
-        }
-
-        // round towards nearest even integer 
-        public static uint floorEven(double num)
-        {
-            uint val = (uint)Math.Floor(num);
-            if (val  % 2 == 0)
-            {
-                return val;
-            }
-            else
-            {
-                return val - 1;
-            }
         }
     }
 }

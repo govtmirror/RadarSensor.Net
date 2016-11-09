@@ -484,7 +484,7 @@ namespace AgilentN6841A
         // determines start index when copying raw data from sensor
         private int getStartIndex(double sampleRate, int numBinsInFft)
         {
-            int numValidBins = (int)FFTParams.floorEven(numBinsInFft / 
+            int numValidBins = (int)Utilites.floorEven(numBinsInFft / 
                 (sensorCapabilities.maxSampleRate / sensorCapabilities.maxSpan));
             int startIndex = (numBinsInFft - numValidBins) / 2 + 1;
             return startIndex;
