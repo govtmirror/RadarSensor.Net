@@ -7,12 +7,12 @@ namespace General
     public static class Constants
     {
         // senser managment server ip address
-        public static readonly string SMS_IP = "10.6.6.14";
+        public static readonly string SMS_IP = "10.6.6.13";
 
-        public static readonly string SENSOR_HOST_NAME = "RM3420B";
+        public static readonly string SENSOR_HOST_NAME = "DKs";
 
         // web relay ip address 
-        public static readonly string PRESELECTOR_IP = "10.6.6.22";
+        public static readonly string PRESELECTOR_IP = "10.6.6.12";
 
         // path to store Messages as JSON file
         public static readonly string MESSAGE_FILES_DIR
