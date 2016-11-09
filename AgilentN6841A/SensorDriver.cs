@@ -310,7 +310,9 @@ namespace AgilentN6841A
 
             sweepParams.numSweeps = 1;
             sweepParams.numSegments = 1;
+            sweepParams.sweepInterval = 0.0;
             sweepParams.monitorMode = AgSalLib.MonitorMode.MonitorMode_off;
+            sweepParams.monitorInterval = 0.0;
             // data return type for sweepParams is always real float32 dbm
 
             fs[0].numFftPoints = fftParams.NumFftBins;
@@ -381,13 +383,20 @@ namespace AgilentN6841A
                             return true;
                         }
                         //get the data 
-                        // cast frequencyData as doubles and add to powerLists 
+                        // check if need to remove anti aliasing 
+                        int startIndex = 0;
+                        if (measParams.RmvAa == 1)
+                        {
+                            startIndex = getStartIndex(fftParams.SampleRate,
+                                (int)fftParams.NumFftBins);
+                        }
+
                         FloatArrayToListOfDoubles(frequencyData, 
-                        powerList, numFftsToCopy);
+                        powerList, numFftsToCopy, startIndex);
                         dataRetrieved = true;
                         break;
 
-                        // TODO:  If measurement calculate frequencies 
+                        // TODO:  calculate frequencies 
 
                     case AgSalLib.SalError.SAL_ERR_NO_DATA_AVAILABLE:
                         // data is not available yet ... 
@@ -472,10 +481,19 @@ namespace AgilentN6841A
             return false;
         }
 
-        private void FloatArrayToListOfDoubles(float[] array, 
-            List<double> list, uint sizeToCopy)
+        // determines start index when copying raw data from sensor
+        private int getStartIndex(double sampleRate, int numBinsInFft)
         {
-            for (int i = 0; i < sizeToCopy; i++)
+            int numValidBins = (int)FFTParams.floorEven(numBinsInFft / 
+                (sensorCapabilities.maxSampleRate / sensorCapabilities.maxSpan));
+            int startIndex = (numBinsInFft - numValidBins) / 2 + 1;
+            return startIndex;
+        }
+
+        private void FloatArrayToListOfDoubles(float[] array, 
+            List<double> list, uint sizeToCopy, int startIndex)
+        {
+            for (int i = startIndex; i < sizeToCopy + startIndex; i++)
             {
                 list.Add((double)array[i]);
             }

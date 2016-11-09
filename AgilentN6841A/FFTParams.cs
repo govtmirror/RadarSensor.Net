@@ -47,7 +47,7 @@ namespace AgilentN6841A
         {
             { "Rectangular", 1.0 },
             { "Flattop", 3.8 },
-            { "Gauss-top", 2.2 },
+            { "Gauss-top", 2.215349684 },
             { "Hanning", 1.5 },
             { "Blackman-Harris", 2.0 }
         };
@@ -289,7 +289,7 @@ namespace AgilentN6841A
         }
 
         // round towards nearest even integer 
-        private uint floorEven(double num)
+        public static uint floorEven(double num)
         {
             uint val = (uint)Math.Floor(num);
             if (val  % 2 == 0)
