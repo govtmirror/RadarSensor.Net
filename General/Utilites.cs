@@ -65,6 +65,20 @@ namespace General
             w.Close();
         }
 
+        // round towards nearest even integer 
+        public static uint floorEven(double num)
+        {
+            uint val = (uint)Math.Floor(num);
+            if (val % 2 == 0)
+            {
+                return val;
+            }
+            else
+            {
+                return val - 1;
+            }
+        }
+
         public static void Main(String[] args) { }
     }
 }
