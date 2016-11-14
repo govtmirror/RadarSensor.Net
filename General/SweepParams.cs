@@ -23,6 +23,7 @@
 
         private string window;
         private string detector;
+        private bool dynamicAttenuation;
 
         // parameterless constructor of object deserialization
         public SweepParams() { }
@@ -61,6 +62,12 @@
         {
             get { return rmvAa; }
             set { rmvAa = value; }
+        }
+
+        public bool DynamicAttenuation
+        {
+            get { return dynamicAttenuation; }
+            set { dynamicAttenuation = value; }
         }
 
         public int Attenuation
