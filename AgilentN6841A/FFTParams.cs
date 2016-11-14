@@ -267,7 +267,7 @@ namespace AgilentN6841A
             }
         }
 
-        public void LoadSysMessage(SysMessage sysMessage)
+        public void LoadMessage(SysMessage sysMessage)
         {
             // calculate  resolution bw
             sysMessage.calibration.measurementParameters.resolutionBw =
@@ -285,6 +285,24 @@ namespace AgilentN6841A
             // calculate equivalent noise bandwidth 
             sysMessage.calibration.measurementParameters.
                 equivalentNoiseBw = 
+                WindowValue * SampleRate / NumFftBins;
+        }
+
+        public void LoadMessage(DataMessage dataMessage)
+        {
+            dataMessage.measurementParameters.resolutionBw =
+                SampleRate / NumFftBins;
+
+            dataMessage.measurementParameters.startFrequency =
+                FrequencyList[0];
+
+            dataMessage.measurementParameters.stopFrequency =
+                FrequencyList[FrequencyList.Count - 1];
+
+            dataMessage.measurementParameters.numOfFrequenciesInSweep =
+                FrequencyList.Count;
+
+            dataMessage.measurementParameters.equivalentNoiseBw =
                 WindowValue * SampleRate / NumFftBins;
         }
     }

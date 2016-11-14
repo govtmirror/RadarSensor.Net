@@ -1,5 +1,5 @@
 {
-  "mType": "Swept-frequency",
+  "measurementType": "Swept-frequency",
   "sys2Detect": "SPN43",  
   "Antenna": 1,
   "Attenuation": 0,
@@ -11,7 +11,7 @@
   "MaxAtten": 30,
   "MinAtten": 0,
   "PreAmp": 0,
-  "RmvAa": 1,
+  "RmvAa": true,
   "StepAtten": 3,
   "TimeOverlap": 0,
   "Window": "Gauss-top",

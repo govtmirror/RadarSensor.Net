@@ -14,6 +14,12 @@ namespace General
         // web relay ip address 
         public static readonly string PRESELECTOR_IP = "10.6.6.22";
 
+        // for sys and data messages 
+        public static readonly int CALS_PER_HOUR = 1;
+        public static readonly string BYTE_ORDER = "network";
+        public static readonly string COMPRESSION = "none";
+        public static readonly string DATA_TYPE = "ASCII";
+
         // path to store Messages as JSON file
         public static readonly string MESSAGE_FILES_DIR
             = @"C:\SpectrumMonitoring\Data";
