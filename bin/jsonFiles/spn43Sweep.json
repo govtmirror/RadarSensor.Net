@@ -6,13 +6,14 @@
   "Bw": 1000000,
   "Detector": "Positive",
   "DwellTime": 5,
-  "Fstart": 3450000000,
-  "Fstop": 3650000000,
+  "StartFrequency": 3450000000,
+  "StopFrequency": 3650000000,
   "MaxAtten": 30,
   "MinAtten": 0,
   "PreAmp": 0,
   "RmvAa": 1,
   "StepAtten": 3,
   "TimeOverlap": 0,
-  "Window": "Gauss-top"
+  "Window": "Gauss-top",
+  "dynamicAttenuation" :  false
 }
