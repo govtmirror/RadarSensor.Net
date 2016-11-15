@@ -165,7 +165,7 @@ namespace AgilentN6841A
         public bool PerformMeasurement(SweepParams sweepParams, 
             DataMessage dataMessage, YfactorCal yFactorCal)
         {
-            preselector.Set3_5Filter();
+            SetFilter(sweepParams.sys2Detect);
             preselector.SetRfIn();
             preselector.PowerOffNd();
 
@@ -187,6 +187,7 @@ namespace AgilentN6841A
             List<double> frequencyList = new List<double>();
             List<double> attenList = new List<double>();
 
+            // detect over span 
             for (int i = 0; i < fftParams.NumSegments; i++)
             {
                 double cf = fftParams.CenterFrequencies[i];

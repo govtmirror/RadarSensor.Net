@@ -1,8 +1,6 @@
 ﻿using AgilentN6841A;
-using SensorFrontEnd;
 using System.ServiceProcess;
 using System.Threading;
-using System.Collections.Generic;
 using System;
 using System.Web.Script.Serialization;
 using System.IO;
@@ -38,7 +36,7 @@ namespace Service
             this.ServiceName = "RadarSensorService";
             this.CanPauseAndContinue = true;
             this.CanStop = true;
-            Thread sensorThread = new Thread(this.mainThread);
+            Thread sensorThread = new Thread(this.MainThread);
             sensorThread.Start();
         }
 
@@ -57,7 +55,7 @@ namespace Service
         /// <summary>
         /// 
         /// </summary>
-        private void mainThread()
+        private void MainThread()
         {
             // verify needed paths exists 
             if (!Directory.Exists(Constants.MESSAGE_FILES_DIR))
