@@ -22,11 +22,8 @@ namespace General
                 File.ReadAllText(Constants.CotsSensorFile);
             cotsSensor = 
                 new JavaScriptSerializer().Deserialize<CotsSensor>(sensorString);
-
-            string calString =
-                File.ReadAllText(Constants.CalibrationFile);
-            calibration =
-                new JavaScriptSerializer().Deserialize<Calibration>(calString);
+            calibration = new Calibration();
+            messageType = "Sys";
         }
 
         public Antenna antenna;

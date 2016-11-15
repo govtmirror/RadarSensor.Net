@@ -36,7 +36,7 @@ namespace General
 
         public string comment { get; set; }
 
-        public string processed { get; set; }
+        public bool processed { get; set; }
 
         public string dataType { get; set; }
 
@@ -56,6 +56,12 @@ namespace General
         /// if processed = true
         /// measured pwer vector [dbm ref to output of isotropic antenna]
         /// </summary>
-        public double[] measuredPowers { get; set; }
+        public List<double> measuredPowers { get; set; }
+
+        public DataMessage()
+        {
+            measurementParameters = new MeasurementParameters();
+            messageType = "Data";
+        }
     }
 }

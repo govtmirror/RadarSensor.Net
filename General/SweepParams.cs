@@ -13,7 +13,7 @@
         private int timeOverlap;
         // lag indicating portion of FFT bins to return 
         //{0: all, 1: exclude bins affected by anti-aliasing filter}
-        private int rmvAa;
+        private bool removeAntiAliasing;
         private int antenna;
         private int preAmp;
         private int attenuation;
@@ -23,6 +23,8 @@
 
         private string window;
         private string detector;
+        private string measurementType;
+        private bool dynamicAttenuation;
 
         // parameterless constructor of object deserialization
         public SweepParams() { }
@@ -57,10 +59,16 @@
             set { timeOverlap = value; }
         }
 
-        public int RmvAa
+        public bool RemoveAntiAliasing
         {
-            get { return rmvAa; }
-            set { rmvAa = value; }
+            get { return removeAntiAliasing; }
+            set { removeAntiAliasing = value; }
+        }
+
+        public bool DynamicAttenuation
+        {
+            get { return dynamicAttenuation; }
+            set { dynamicAttenuation = value; }
         }
 
         public int Attenuation
@@ -93,25 +101,25 @@
         public int MinAtten
         {
             get { return minAtten; }
-            set
-            {
-                minAtten = value;
-            }
+            set { minAtten = value; }
         }
 
         public int MaxAtten
         {
             get { return maxAtten; }
-            set
-            {
-                maxAtten = value;
-            }
+            set { maxAtten = value; }
         }
 
         public int StepAtten
         {
             get { return stepAtten; }
             set { stepAtten = value; }
+        }
+
+        public string MeasurementType
+        {
+            get { return measurementType; }
+            set { measurementType = value; }
         }
 
         public string sys2Detect { get; set; }

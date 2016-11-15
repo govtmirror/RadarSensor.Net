@@ -3,9 +3,8 @@ using System.IO;
 using AgSal;
 using General;
 using System.Collections.Generic;
-using System.Linq;
 using SensorFrontEnd;
-using System.Threading;
+using System.Web.Script.Serialization;
 
 namespace AgilentN6841A
 {
@@ -67,11 +66,11 @@ namespace AgilentN6841A
 
         #region public methods
         /// <summary>
-        /// 
+        /// Perfrom Y-factor calibration 
         /// </summary>
         /// <param name="calParams"></param>
         /// <param name="sysMessage"></param>
-        /// <returns>true if error</returns>
+        /// <param name="yFactorCal"></param>
         public void PerformCal(SweepParams calParams, 
             SysMessage sysMessage, out YfactorCal yFactorCal)
         {
@@ -79,19 +78,8 @@ namespace AgilentN6841A
             List<double> powerListNdOff = new List<double>();
 
             double attenuaiton;
-
-            if (calParams.Attenuation > MAX_ATTEN ||
-                calParams.Attenuation < MIN_ATTEN)
-            {
-                Utilites.LogMessage("Attenuation out of range for sensor");
-                yFactorCal = null;
-                return;
-            }
-            else
-            {
-                calParams.MinAtten = calParams.Attenuation;
-                calParams.MaxAtten = calParams.Attenuation;
-            }
+            calParams.MinAtten = calParams.Attenuation;
+            calParams.MaxAtten = calParams.Attenuation;
 
             // set filter 
             bool err = SetFilter(calParams.sys2Detect);
@@ -101,17 +89,7 @@ namespace AgilentN6841A
                 return;
             }
 
-            // Load sysMessage with sweepParam values
-            sysMessage.calibration.measurementParameters.detector =
-                calParams.Detector;
-            sysMessage.calibration.measurementParameters.window =
-                calParams.Window;
-            sysMessage.calibration.measurementParameters.attenuation =
-                calParams.Attenuation;
-            sysMessage.calibration.measurementParameters.videoBw = -1;
             sysMessage.calibration.temp = preselector.GetTemp();
-            sysMessage.calibration.measurementParameters.dwellTime =
-                calParams.DwellTime;
 
             // perfrom cal for number of attenuations
             // IS THIS necessary???
@@ -132,12 +110,13 @@ namespace AgilentN6841A
             }
 
             // load sysMessage with fftParams and perfrom sweep for cal
-            fftParams.LoadSysMessage(sysMessage);
+            fftParams.LoadMessage(sysMessage);
 
             // Perform sweep with calibrated noise source on
             preselector.SetNdIn();
             preselector.PowerOnNd();
-            err = DetectSpan(fftParams, powerListNdOn, calParams);
+            err = DetectSpan(fftParams, calParams, powerListNdOn,
+                null, null);
             if (err)
             {
                 yFactorCal = null;
@@ -146,7 +125,8 @@ namespace AgilentN6841A
 
             // perfrom sweep with calibrated noise source off
             preselector.PowerOffNd();
-            err = DetectSpan(fftParams, powerListNdOff, calParams);
+            err = DetectSpan(fftParams, calParams, powerListNdOff,
+                null, null);
             if (err)
             {
                 yFactorCal = null;
@@ -182,9 +162,13 @@ namespace AgilentN6841A
         /// </summary>
         /// <param name="sweepParams"></param>
         /// <param name="dataMessage"></param>
-        public bool performMeasurement(SweepParams sweepParams, 
+        public bool PerformMeasurement(SweepParams sweepParams, 
             DataMessage dataMessage, YfactorCal yFactorCal)
         {
+            SetFilter(sweepParams.sys2Detect);
+            preselector.SetRfIn();
+            preselector.PowerOffNd();
+
             FFTParams fftParams = new FFTParams(sensorCapabilities,
                 sweepParams, possibleSampleRates, possibleSpans);
 
@@ -193,24 +177,75 @@ namespace AgilentN6841A
                 Utilites.LogMessage("error calculating FFT Params");
                 return true;
             }
+
+            fftParams.LoadMessage(dataMessage);
+
             // set filter 
             bool err = SetFilter(sweepParams.sys2Detect);
 
+            List<double> powerList = new List<double>();
+            List<double> frequencyList = new List<double>();
+            List<double> attenList = new List<double>();
+
+            // detect over span 
+            for (int i = 0; i < fftParams.NumSegments; i++)
+            {
+                double cf = fftParams.CenterFrequencies[i];
+
+                uint numFftsToCopy;
+                if (i == fftParams.NumFullSegments)
+                {
+                    numFftsToCopy = fftParams.NumBinsLastSegment;
+                }
+                else
+                {
+                    numFftsToCopy = fftParams.NumValidFftBins;
+                }
+
+                if (sweepParams.DynamicAttenuation)
+                {
+                    // ToDo
+                }
+                else
+                {
+                    DetectSegment(sweepParams, fftParams, powerList,
+                        frequencyList, cf, numFftsToCopy);
+                }
+            }
+
+            List<double> measuredPowers = new List<double>();
+            // Init antenna class to access cable loss and antenna gain
+            string antennaString =
+                File.ReadAllText(Constants.AntennaFile);
+            SysMessage.Antenna antenna = 
+                new JavaScriptSerializer().Deserialize<SysMessage.Antenna>(
+                    antennaString);
+
+            // reference power levels to input of isotropic antenna 
+            for (int i = 0; i < powerList.Count; i++)
+            {
+                measuredPowers.Add(
+                    powerList[i] + antenna.cableLoss - antenna.gain - 
+                    yFactorCal.GainDbw[i]);
+            }
+            dataMessage.processed = true;
+            dataMessage.measuredPowers = measuredPowers;
             return false;
         }
         #endregion
 
         #region private methods 
-        private bool DetectSpan(FFTParams fftParams, 
-            List<double> powerList, SweepParams measParams)
+        private bool DetectSpan(FFTParams fftParams, SweepParams measParams,
+            List<double> powerList, List<double> frequencies, 
+            List<double> attenList)
         {
             // detect over span
-            for (int j = 0; j < fftParams.NumSegments; j++)
+            for (int i = 0; i < fftParams.NumSegments; i++)
             {
-                double cf = fftParams.CenterFrequencies[j];
+                double cf = fftParams.CenterFrequencies[i];
 
                 uint numFftsToCopy;
-                if (j == fftParams.NumFullSegments)
+                if (i == fftParams.NumFullSegments)
                 {
                     numFftsToCopy = fftParams.NumBinsLastSegment;
                 }
@@ -219,8 +254,8 @@ namespace AgilentN6841A
                     numFftsToCopy = fftParams.NumValidFftBins;
                 }
               
-                bool err = DetectSegment(measParams, fftParams, powerList,
-                    cf, numFftsToCopy);
+                bool err = DetectSegment(measParams, fftParams, powerList, 
+                    null, cf, numFftsToCopy);
                 if (err)
                 {
                     return true;
@@ -231,7 +266,7 @@ namespace AgilentN6841A
 
         private bool DetectSegment(SweepParams measParams, 
             FFTParams fftParams, List<double> powerList,
-            double cf, uint numFftsToCopy)
+            List<double> frequencies, double cf, uint numFftsToCopy)
         {
             AgSalLib.SalError err;
 
@@ -356,6 +391,7 @@ namespace AgilentN6841A
             int maxDataReadMilliSeconds = 1000;
             DateTime t0 = DateTime.Now;
             bool dataRetrieved = false;
+            int startIndex = 0;
 
             while (!dataRetrieved)
             {
@@ -364,7 +400,6 @@ namespace AgilentN6841A
                 {
                     Utilites.LogMessage("Getting segment data timed out, " +
                         "restarting cal");
-                    //PerformCal(measParams, new SysMessage(), out yFactorCal);
                 }
 
                 err = AgSalLib.salGetSegmentData(measHandle, 
@@ -382,12 +417,12 @@ namespace AgilentN6841A
                             Utilites.LogMessage(message);
                             return true;
                         }
-                        //get the data 
-                        // check if need to remove anti aliasing 
-                        int startIndex = 0;
-                        if (measParams.RmvAa == 1)
+                        // get the data 
+                        // check if need to remove anti aliasing
+                        // need startIndex after the while loop so declared outside 
+                        if (measParams.RemoveAntiAliasing)
                         {
-                            startIndex = getStartIndex(fftParams.SampleRate,
+                            startIndex = GetStartIndex(fftParams.SampleRate,
                                 (int)fftParams.NumFftBins);
                         }
 
@@ -396,18 +431,36 @@ namespace AgilentN6841A
                         dataRetrieved = true;
                         break;
 
-                        // TODO:  calculate frequencies 
-
                     case AgSalLib.SalError.SAL_ERR_NO_DATA_AVAILABLE:
                         // data is not available yet ... 
                         break;
                     default:
-                        // restart cal
                         SensorError(err, "salGetSegmentData");
                         break;
                 }
             }
+
+            if (frequencies != null)
+            {
+                // calculate frquencies
+                for (int i = 0; i < numFftsToCopy; i++)
+                {
+                    frequencies.Add(dataHeader.startFrequency +
+                        (startIndex - 1) * dataHeader.frequencyStep +
+                        i * dataHeader.frequencyStep);
+                }
+            }
             return false;
+        }
+
+        public bool ValidAtten(double atten)
+        {
+            if (atten < MIN_ATTEN || atten > MAX_ATTEN)
+            {
+                Utilites.LogMessage("Invalid attenuation in input file");
+                return false;
+            }
+            return true;
         }
 
         private bool SetFilter(string sys2Detect)
@@ -420,7 +473,7 @@ namespace AgilentN6841A
             {
                 preselector.Set3_0Filter();
             }
-            else if (sys2Detect.ToLower().Equals("ASR"))
+            else if (sys2Detect.ToLower().Equals("asr"))
             {
                 preselector.SetBypass();
             }
@@ -482,7 +535,7 @@ namespace AgilentN6841A
         }
 
         // determines start index when copying raw data from sensor
-        private int getStartIndex(double sampleRate, int numBinsInFft)
+        private int GetStartIndex(double sampleRate, int numBinsInFft)
         {
             int numValidBins = (int)Utilites.floorEven(numBinsInFft / 
                 (sensorCapabilities.maxSampleRate / sensorCapabilities.maxSpan));

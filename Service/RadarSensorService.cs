@@ -1,8 +1,6 @@
 ﻿using AgilentN6841A;
-using SensorFrontEnd;
 using System.ServiceProcess;
 using System.Threading;
-using System.Collections.Generic;
 using System;
 using System.Web.Script.Serialization;
 using System.IO;
@@ -38,7 +36,7 @@ namespace Service
             this.ServiceName = "RadarSensorService";
             this.CanPauseAndContinue = true;
             this.CanStop = true;
-            Thread sensorThread = new Thread(this.mainThread);
+            Thread sensorThread = new Thread(this.MainThread);
             sensorThread.Start();
         }
 
@@ -57,9 +55,9 @@ namespace Service
         /// <summary>
         /// 
         /// </summary>
-        private void mainThread()
+        private void MainThread()
         {
-            // verify needed paths exits 
+            // verify needed paths exists 
             if (!Directory.Exists(Constants.MESSAGE_FILES_DIR))
             {
                 Directory.CreateDirectory(Constants.MESSAGE_FILES_DIR);
@@ -87,8 +85,7 @@ namespace Service
             {
                 if (timer.elaspedTime() >= SECONDS_IN_HOUR ||
                     !initialCalComplete)
-                {    
-                    //Perform calibration
+                {
                     // read in parameters for calibration
                     SweepParams calParams;
                     string jsonString = 
@@ -99,6 +96,27 @@ namespace Service
 
                     SysMessage sysMessage = new SysMessage();
                     sysMessage.loadMessageFields();
+                    sysMessage.calibration.numOfMeasurementsPerCal = 
+                        numOfMeasurements;
+                    sysMessage.calibration.measurementType =
+                        calParams.MeasurementType;
+                    sysMessage.calibration.calsPerHour = 
+                        Constants.CALS_PER_HOUR;
+                    sysMessage.calibration.compression =
+                        Constants.COMPRESSION;
+                    sysMessage.calibration.byteOrder =
+                        Constants.BYTE_ORDER;
+                    sysMessage.calibration.dataType =
+                        Constants.DATA_TYPE;
+                    sysMessage.calibration.measurementParameters.detector =
+                        calParams.Detector;
+                    sysMessage.calibration.measurementParameters.window =
+                        calParams.Window;
+                    sysMessage.calibration.measurementParameters.attenuation =
+                        calParams.Attenuation;
+                    sysMessage.calibration.measurementParameters.videoBw = -1;
+                    sysMessage.calibration.measurementParameters.dwellTime =
+                        calParams.DwellTime;
 
                     sensor.PerformCal(calParams, sysMessage, out yFactorCal);
                     if (yFactorCal == null)
@@ -109,7 +127,6 @@ namespace Service
                         continue;
                     }
                     Utilites.WriteMessageToFile(sysMessage);
-                    //Console.ReadLine();
                     initialCalComplete = true;
                     timer.reset();
                     numOfMeasurements = 0;
@@ -118,15 +135,25 @@ namespace Service
                 {
                     if (yFactorCal == null) { continue; }
 
-                    // perform measurement
-                    DataMessage dataMessage = new DataMessage();
                     SweepParams sweepParams;
                     string jsonString =
                         File.ReadAllText(Constants.Spn43MeasurementFile);
                     sweepParams =
                         new JavaScriptSerializer().Deserialize<SweepParams>(
                             jsonString);
-                    sensor.performMeasurement(sweepParams, dataMessage, yFactorCal);
+
+                    DataMessage dataMessage = new DataMessage();
+                    dataMessage.loadMessageFields();
+                    dataMessage.sysToDetect = sweepParams.sys2Detect;
+                    dataMessage.measurementType = sweepParams.MeasurementType;
+                    dataMessage.compression = Constants.COMPRESSION;
+                    dataMessage.dataType = Constants.DATA_TYPE;
+                    dataMessage.byteOrder = Constants.BYTE_ORDER;
+
+                    sensor.PerformMeasurement(sweepParams, dataMessage, yFactorCal);
+
+                    numOfMeasurements++;
+                    Utilites.WriteMessageToFile(dataMessage);
                 }          
             }
         }
