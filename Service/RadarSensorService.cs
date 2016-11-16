@@ -149,6 +149,14 @@ namespace Service
                     dataMessage.compression = Constants.COMPRESSION;
                     dataMessage.dataType = Constants.DATA_TYPE;
                     dataMessage.byteOrder = Constants.BYTE_ORDER;
+                    dataMessage.measurementParameters.attenuation =
+                        sweepParams.Attenuation;
+                    dataMessage.measurementParameters.detector =
+                        sweepParams.Detector;
+                    dataMessage.measurementParameters.dwellTime =
+                        sweepParams.DwellTime;
+                    dataMessage.measurementParameters.window =
+                        sweepParams.Window;
 
                     sensor.PerformMeasurement(sweepParams, dataMessage, yFactorCal);
 
