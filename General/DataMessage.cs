@@ -29,7 +29,7 @@ namespace General
         public double timeBetweenStreams { get; set; }
 
         // overload flag
-        public int overloadFlag { get; set; }
+        public bool overloadFlag { get; set; }
 
         // detected system noise power dBm
         public double[] detectedSysNoisePowers { get; set; }

@@ -3,6 +3,7 @@ using System.IO;
 using AgSal;
 using General;
 using System.Collections.Generic;
+using System.Linq;
 using SensorFrontEnd;
 using System.Web.Script.Serialization;
 
@@ -185,7 +186,8 @@ namespace AgilentN6841A
 
             List<double> powerList = new List<double>();
             List<double> frequencyList = new List<double>();
-            List<double> attenList = new List<double>();
+            List<int> attenList = Enumerable.Repeat(sweepParams.Attenuation,
+                (int)fftParams.NumSegments).ToList(); 
 
             // detect over span 
             for (int i = 0; i < fftParams.NumSegments; i++)
@@ -204,12 +206,28 @@ namespace AgilentN6841A
 
                 if (sweepParams.DynamicAttenuation)
                 {
-                    // ToDo
+                    bool overload = true;
+                    while (overload && attenList[i] <= MAX_ATTEN)
+                    {
+                        DetectSegment(sweepParams, fftParams, powerList,
+                            frequencyList, cf, numFftsToCopy, ref overload);
+                        if (overload)
+                        {
+                            dataMessage.overloadFlag = true;
+                            sweepParams.Attenuation += sweepParams.StepAtten;
+                            attenList[i] = sweepParams.Attenuation;
+                        }
+                    }    
                 }
                 else
                 {
+                    bool overload = false;
                     DetectSegment(sweepParams, fftParams, powerList,
-                        frequencyList, cf, numFftsToCopy);
+                        frequencyList, cf, numFftsToCopy, ref overload);
+                    if (overload)
+                    {
+                        dataMessage.overloadFlag = true;
+                    }
                 }
             }
 
@@ -253,9 +271,10 @@ namespace AgilentN6841A
                 {
                     numFftsToCopy = fftParams.NumValidFftBins;
                 }
-              
+
+                bool overload = false;
                 bool err = DetectSegment(measParams, fftParams, powerList, 
-                    null, cf, numFftsToCopy);
+                    null, cf, numFftsToCopy, ref overload);
                 if (err)
                 {
                     return true;
@@ -266,7 +285,8 @@ namespace AgilentN6841A
 
         private bool DetectSegment(SweepParams measParams, 
             FFTParams fftParams, List<double> powerList,
-            List<double> frequencies, double cf, uint numFftsToCopy)
+            List<double> frequencies, double cf, uint numFftsToCopy,
+            ref bool overloadFlag)
         {
             AgSalLib.SalError err;
 
@@ -428,6 +448,15 @@ namespace AgilentN6841A
 
                         FloatArrayToListOfDoubles(frequencyData, 
                         powerList, numFftsToCopy, startIndex);
+                        // check if overload occured 
+                        if (dataHeader.overload != 0)
+                        {
+                            overloadFlag = true;
+                        }
+                        else
+                        {
+                            overloadFlag = false;
+                        }
                         dataRetrieved = true;
                         break;
 
