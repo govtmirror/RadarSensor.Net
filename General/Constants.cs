@@ -1,19 +1,11 @@
 ﻿using System;
-using System.Text;
+using System.Web.Script.Serialization;
 using System.IO;
 
 namespace General
 {
     public static class Constants
     {
-        // senser managment server ip address
-        public static readonly string SMS_IP = "10.6.6.14";
-
-        public static readonly string SENSOR_HOST_NAME = "RM3420B";
-
-        // web relay ip address 
-        public static readonly string PRESELECTOR_IP = "10.6.6.22";
-
         // for sys and data messages 
         public static readonly int CALS_PER_HOUR = 1;
         public static readonly string BYTE_ORDER = "network";
@@ -47,6 +39,15 @@ namespace General
             {
                 return Path.Combine(LOG_FILE_DIR, 
                     "radarSensorLog.txt");
+            }
+        }
+
+        public static string ConfigFile
+        {
+            get
+            {
+                return Path.Combine(currentDir,
+                    JSON_FILES_Dir, "config.json");
             }
         }
 

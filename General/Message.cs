@@ -1,6 +1,6 @@
 ﻿using System;
-using System.Web;
-    using General;
+using System.Web.Script.Serialization;
+using System.IO;
 
 namespace General
 {
@@ -10,8 +10,12 @@ namespace General
 
         public void loadMessageFields()
         {
+            Config config =
+               new JavaScriptSerializer().Deserialize<Config>(
+                   File.ReadAllText(Constants.ConfigFile));
+            sensorKey = config.SensorKey;
+            sensorId = config.SensorHostName;
             version = Constants.TRANSFER_SPEC_VER;
-            sensorId = Constants.SENSOR_HOST_NAME;
             time = Utilites.GetEpochTime();
         }
         

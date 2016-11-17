@@ -1,0 +1,7 @@
+{
+  "SensorHostName": "RM3420B",
+  "SensorManagmentServerIp": "10.6.6.14",
+  "PreselectorIp": "10.6.6.22",
+  "SensorId": "123456789",
+  "SensorKey": 123456789
+}

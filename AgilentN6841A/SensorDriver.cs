@@ -11,8 +11,7 @@ namespace AgilentN6841A
 {
     public class SensorDriver
     {
-        Preselector preselector = 
-            new Preselector(Constants.PRESELECTOR_IP);
+        Preselector preselector; 
         // Agilent N6841A specific
         public const int MAX_ATTEN = 30;
         public const int MIN_ATTEN = 0;
@@ -51,9 +50,11 @@ namespace AgilentN6841A
         /// 
         /// </summary>
         /// <param name="ip">ip address in dotted decimal</param>
-        public SensorDriver()
+        public SensorDriver(string preselectorIp,
+            string sensorName)
         {
-            sensorName = Constants.SENSOR_HOST_NAME;
+            this.sensorName = sensorName;
+            preselector = new Preselector(preselectorIp);
 
             bool connectionPassed = ConnectSensor();
             if (!connectionPassed)
