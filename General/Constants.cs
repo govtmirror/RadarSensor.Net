@@ -27,11 +27,11 @@ namespace General
     Directory.GetCurrentDirectory();
 
         // files that will be deserealized into a class at runtime
-        private static readonly string JSON_FILES_Dir = "jsonFiles";
+        private static readonly string CONFIG = "config";
 
         // dir with csv files for unit tests
         private static readonly string
-            UNIT_TEST_VALUES = "unitTestExpectedValues";
+            UNIT_TESTS = "unitTests";
 
         public static string LogFile
         {
@@ -47,7 +47,7 @@ namespace General
             get
             {
                 return Path.Combine(currentDir,
-                    JSON_FILES_Dir, "config.json");
+                    CONFIG, "config.json");
             }
         }
 
@@ -56,7 +56,7 @@ namespace General
             get
             {
                 return Path.Combine(currentDir,
-                    JSON_FILES_Dir, "SysMessage.json");
+                    CONFIG, "SysMessage.json");
             }
         }
 
@@ -65,7 +65,7 @@ namespace General
             get
             {
                 return Path.Combine(currentDir,
-                    JSON_FILES_Dir, "DataMessage.json");
+                    CONFIG, "DataMessage.json");
             }
         }
 
@@ -74,7 +74,7 @@ namespace General
             get
             {
                 return Path.Combine(currentDir,
-                    JSON_FILES_Dir, "LocMessage.json");
+                    CONFIG, "LocMessage.json");
             }
         }
 
@@ -83,7 +83,7 @@ namespace General
             get
             {
                 return Path.Combine(currentDir,
-                    JSON_FILES_Dir, "Antenna.json");
+                    CONFIG, "Antenna.json");
             }
         }
 
@@ -92,7 +92,7 @@ namespace General
             get
             {
                 return Path.Combine(currentDir,
-                    JSON_FILES_Dir, "Calibration.json");
+                    CONFIG, "Calibration.json");
             }
         }
 
@@ -101,7 +101,7 @@ namespace General
             get
             {
                 return Path.Combine(currentDir,
-                    JSON_FILES_Dir, "CotsSensor.json");
+                    CONFIG, "CotsSensor.json");
             }
         }
 
@@ -110,7 +110,7 @@ namespace General
             get
             {
                 return Path.Combine(currentDir,
-                    JSON_FILES_Dir, "Preselector.json");
+                    CONFIG, "Preselector.json");
             }
         }
 
@@ -119,7 +119,7 @@ namespace General
             get
             {
                 return Path.Combine(currentDir, 
-                    JSON_FILES_Dir, "spn43Cal.json");
+                    CONFIG, "spn43Cal.json");
             }
         }
 
@@ -128,7 +128,7 @@ namespace General
             get
             {
                 return Path.Combine(currentDir,
-                    JSON_FILES_Dir, "spn43Sweep.json");
+                    CONFIG, "spn43Sweep.json");
             }
         }
 
@@ -138,7 +138,7 @@ namespace General
             get
             {
                 return Path.Combine(currentDir,
-                    UNIT_TEST_VALUES, "centerFrequenciesExpectedValues.csv");
+                    UNIT_TESTS, "centerFrequenciesExpectedValues.csv");
             }
         }
 
@@ -147,7 +147,7 @@ namespace General
             get
             {
                 return Path.Combine(currentDir,
-                    UNIT_TEST_VALUES, "frequencyListExpectedValues.csv");
+                    UNIT_TESTS, "frequencyListExpectedValues.csv");
             }
         }
 
@@ -156,7 +156,7 @@ namespace General
             get
             {
                 return Path.Combine(currentDir,
-                    UNIT_TEST_VALUES, "ndOffInputValues.csv");
+                    UNIT_TESTS, "ndOffInputValues.csv");
             }
         }
 
@@ -165,7 +165,7 @@ namespace General
             get
             {
                 return Path.Combine(currentDir,
-                    UNIT_TEST_VALUES, "ndOnInputValues.csv");
+                    UNIT_TESTS, "ndOnInputValues.csv");
             }
         }
 
@@ -174,7 +174,7 @@ namespace General
             get
             {
                 return Path.Combine(currentDir,
-                    UNIT_TEST_VALUES, "expectedNoiseFigure.csv");
+                    UNIT_TESTS, "expectedNoiseFigure.csv");
             }
         }
 
@@ -183,7 +183,7 @@ namespace General
             get
             {
                 return Path.Combine(currentDir,
-                    UNIT_TEST_VALUES, "expectedGain.csv");
+                    UNIT_TESTS, "expectedGain.csv");
             }
         }
     }
