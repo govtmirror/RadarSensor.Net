@@ -11,7 +11,7 @@
   "MaxAtten": 30,
   "MinAtten": 0,
   "PreAmp": 0,
-  "RmvAa": true,
+  "RemoveAntiAliasing": true,
   "StepAtten": 3,
   "TimeOverlap": 0,
   "Window": "Gauss-top",

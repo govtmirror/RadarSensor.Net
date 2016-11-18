@@ -2,6 +2,7 @@
 using System.ServiceProcess;
 using System.Threading;
 using System;
+using System.Diagnostics;
 using System.Web.Script.Serialization;
 using System.IO;
 using General;
@@ -77,6 +78,7 @@ namespace Service
                 config.SensorHostName);
 
             TimedCount timer = new TimedCount();
+            Stopwatch stopwatch = new Stopwatch();
             bool initialCalComplete = false;
             YfactorCal yFactorCal = null;
             int numOfMeasurements = 0;
@@ -93,6 +95,8 @@ namespace Service
                 if (timer.elaspedTime() >= SECONDS_IN_HOUR ||
                     !initialCalComplete)
                 {
+                    // reset stopwatch to zero but do not start 
+                    stopwatch.Reset();
                     // read in parameters for calibration
                     SweepParams calParams;
                     string jsonString = 
@@ -103,6 +107,10 @@ namespace Service
 
                     SysMessage sysMessage = new SysMessage();
                     sysMessage.loadMessageFields();
+                    sysMessage.version = config.Version;
+                    sysMessage.calibration.byteOrder = config.ByteOrder;
+                    sysMessage.calibration.compression = config.Compression;
+                    sysMessage.calibration.dataType = config.DataType;
                     sysMessage.calibration.numOfMeasurementsPerCal = 
                         numOfMeasurements;
                     sysMessage.calibration.measurementType =
@@ -140,7 +148,12 @@ namespace Service
                 }
                 else
                 {
+                    // need to have completed cal to perform sweep
                     if (yFactorCal == null) { continue; }
+
+                    // get last time from stop watch 
+                    TimeSpan elapsedTime = stopwatch.Elapsed;
+                    stopwatch.Restart();
 
                     SweepParams sweepParams;
                     string jsonString =
@@ -151,6 +164,12 @@ namespace Service
 
                     DataMessage dataMessage = new DataMessage();
                     dataMessage.loadMessageFields();
+                    dataMessage.version = config.Version;
+                    dataMessage.byteOrder = config.ByteOrder;
+                    dataMessage.dataType = config.DataType;
+                    dataMessage.comment = config.Compression;
+                    dataMessage.timeBetweenAcquisitions =
+                        elapsedTime.TotalSeconds;
                     dataMessage.sysToDetect = sweepParams.sys2Detect;
                     dataMessage.measurementType = sweepParams.MeasurementType;
                     dataMessage.compression = Constants.COMPRESSION;

@@ -3,5 +3,9 @@
   "SensorManagmentServerIp": "10.6.6.14",
   "PreselectorIp": "10.6.6.22",
   "SensorId": "123456789",
-  "SensorKey": 123456789
+  "SensorKey": 123456789,
+  "versioin": "1.0.16",
+  "dataType": "ASCII",
+  "byteOrder": "network",
+  "compression": "none"
 }

@@ -11,6 +11,10 @@ namespace General
         private string sensorHostName;
         private string sensorManagmentServerIp;
         private string preselectorIp;
+        private string version;
+        private string byteOrder;
+        private string dataType;
+        private string compression;
         private int sensorKey;
 
         public string SensorHostName
@@ -31,8 +35,32 @@ namespace General
             set { preselectorIp = value; }
         }
 
-        public int SensorKey
+        public string Version
         {
+            get { return version; }
+            set { version = value; }
+        }
+
+        public string ByteOrder
+        {
+            get { return byteOrder; }
+            set { byteOrder = value; }
+        }
+
+        public string Compression
+        {
+            get { return compression; }
+            set { compression = value; }
+        }
+
+        public string DataType
+        {
+            get { return dataType; }
+            set { dataType = value; }
+        }
+
+        public int SensorKey
+        { 
             get { return sensorKey; }
             set { sensorKey = value; }
         }
