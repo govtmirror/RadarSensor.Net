@@ -15,7 +15,10 @@ namespace Service
         /// Required designer variable.
         /// </summary>
         private System.ComponentModel.IContainer components = null;
+
         public const int SECONDS_IN_HOUR = 3600;
+
+        private Thread sensorThread;
 
         internal class TimedCount
         {
@@ -37,14 +40,20 @@ namespace Service
             this.ServiceName = "RadarSensorService";
             this.CanPauseAndContinue = true;
             this.CanStop = true;
-            Thread sensorThread = new Thread(this.MainThread);
-            sensorThread.Start();
+        }
+
+        public void OnDebug()
+        {
+            OnStart(null);
         }
 
         protected override void OnStart(string[] args)
         {
             Utilites.LogMessage("Radar Sensor Service started");
             base.OnStart(args);
+            sensorThread = new Thread(this.MainThread);
+            sensorThread.Name = "Radar sensor thread";
+            sensorThread.Start();
         }
 
         protected override void OnStop()
@@ -208,7 +217,15 @@ namespace Service
 
         public static void Main(string[] args)
         {
-            RadarSensorService service = new RadarSensorService();
+#if DEBUG
+            RadarSensorService sensorService = new RadarSensorService();
+            sensorService.OnDebug();
+            Thread.Sleep(System.Threading.Timeout.Infinite);
+#else
+            ServiceBase[] servicesToRun;
+            servicesToRun = new ServiceBase[] { new RadarSensorService() };
+            ServiceBase.Run(servicesToRun);
+#endif 
         }
     }
 }
