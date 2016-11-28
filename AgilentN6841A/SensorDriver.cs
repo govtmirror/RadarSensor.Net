@@ -204,6 +204,7 @@ namespace AgilentN6841A
                     numFftsToCopy = fftParams.NumValidFftBins;
                 }
 
+                sweepParams.Attenuation = 0; // set attenuation back to its initial value. Hardcodded to 0 for testing purpose
                 if (sweepParams.DynamicAttenuation)
                 {
                     bool overload = true;
@@ -246,7 +247,6 @@ namespace AgilentN6841A
                 else
                 {
                     bool overload = false;
-                    //sweepParams.Attenuation = 0; // change attenuation back to 0, because I don't know the initial setting, I hardcode to zero
                     DetectSegment(sweepParams, fftParams, powerList,
                         frequencyList, cf, numFftsToCopy, ref overload);
                     if (overload)
