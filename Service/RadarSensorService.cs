@@ -68,7 +68,14 @@ namespace Service
                 Directory.CreateDirectory(Constants.LOG_FILE_DIR);
             }
 
-            SensorDriver sensor = new SensorDriver();
+            JavaScriptSerializer serializer = new JavaScriptSerializer();
+            Config config =
+                serializer.Deserialize<Config>(
+                    File.ReadAllText(Constants.ConfigFile));
+
+            SensorDriver sensor = new SensorDriver(config.PreselectorIp, 
+                config.SensorHostName);
+
             TimedCount timer = new TimedCount();
             bool initialCalComplete = false;
             YfactorCal yFactorCal = null;
@@ -77,7 +84,7 @@ namespace Service
             // create and write initial location message 
             string locString = File.ReadAllText(Constants.LocMessage);
             LocMessage locMessage = 
-                new JavaScriptSerializer().Deserialize<LocMessage>(locString);
+                serializer.Deserialize<LocMessage>(locString);
             locMessage.loadMessageFields();
             Utilites.WriteMessageToFile(locMessage);
 
@@ -91,7 +98,7 @@ namespace Service
                     string jsonString = 
                         File.ReadAllText(Constants.Spn43CalSweepParamsFile);
                     calParams =
-                        new JavaScriptSerializer().Deserialize<SweepParams>(
+                        serializer.Deserialize<SweepParams>(
                             jsonString);
 
                     SysMessage sysMessage = new SysMessage();
@@ -139,7 +146,7 @@ namespace Service
                     string jsonString =
                         File.ReadAllText(Constants.Spn43MeasurementFile);
                     sweepParams =
-                        new JavaScriptSerializer().Deserialize<SweepParams>(
+                        serializer.Deserialize<SweepParams>(
                             jsonString);
 
                     DataMessage dataMessage = new DataMessage();
@@ -149,6 +156,14 @@ namespace Service
                     dataMessage.compression = Constants.COMPRESSION;
                     dataMessage.dataType = Constants.DATA_TYPE;
                     dataMessage.byteOrder = Constants.BYTE_ORDER;
+                    dataMessage.measurementParameters.attenuation =
+                        sweepParams.Attenuation;
+                    dataMessage.measurementParameters.detector =
+                        sweepParams.Detector;
+                    dataMessage.measurementParameters.dwellTime =
+                        sweepParams.DwellTime;
+                    dataMessage.measurementParameters.window =
+                        sweepParams.Window;
 
                     sensor.PerformMeasurement(sweepParams, dataMessage, yFactorCal);
 

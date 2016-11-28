@@ -1,9 +1,8 @@
 ﻿using System;
 using AgilentN6841A;
 using General;
-using SensorFrontEnd;
 using System.IO;
-using System.Web;
+using System.Web.Script.Serialization;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -13,6 +12,9 @@ namespace RadarSensorTests
     [TestClass]
     public class SensorUnitTests
     {
+        Config config = new JavaScriptSerializer().
+            Deserialize<Config>(File.ReadAllText(Constants.ConfigFile));
+
         [TestMethod]
         public void DbmToWattsTest()
         {
@@ -78,9 +80,9 @@ namespace RadarSensorTests
             List<double> centerFrequencies = new List<double>();    
             List<double> frequencies = new List<double>();
 
-            SensorDriver sensor = new SensorDriver();
-            Preselector preselector = 
-                new Preselector(Constants.PRESELECTOR_IP);
+            SensorDriver sensor = 
+                new SensorDriver(config.PreselectorIp, 
+                config.SensorHostName);
 
             SweepParams measParams;
             string json = File.ReadAllText(Constants.Spn43CalSweepParamsFile);
