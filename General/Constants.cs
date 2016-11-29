@@ -1,11 +1,19 @@
 ﻿using System;
-using System.Web.Script.Serialization;
+using System.Text;
 using System.IO;
 
 namespace General
 {
     public static class Constants
     {
+        // senser managment server ip address
+        public static readonly string SMS_IP = "10.6.6.13";
+
+        public static readonly string SENSOR_HOST_NAME = "DKs";
+
+        // web relay ip address 
+        public static readonly string PRESELECTOR_IP = "10.6.6.12";
+
         // for sys and data messages 
         public static readonly int CALS_PER_HOUR = 1;
         public static readonly string BYTE_ORDER = "network";

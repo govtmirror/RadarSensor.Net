@@ -79,7 +79,6 @@ namespace AgilentN6841A
             List<double> powerListNdOn = new List<double>();
             List<double> powerListNdOff = new List<double>();
 
-            double attenuaiton;
             calParams.MinAtten = calParams.Attenuation;
             calParams.MaxAtten = calParams.Attenuation;
 
@@ -205,6 +204,7 @@ namespace AgilentN6841A
                     numFftsToCopy = fftParams.NumValidFftBins;
                 }
 
+                sweepParams.Attenuation = 0; // set attenuation back to its initial value. Hardcodded to 0 for testing purpose
                 if (sweepParams.DynamicAttenuation)
                 {
                     bool overload = true;
@@ -222,7 +222,31 @@ namespace AgilentN6841A
                             sweepParams.Attenuation += sweepParams.StepAtten;
                             attenList[i] = sweepParams.Attenuation;
                         }
-                    }    
+
+                        // remove previous duplicated segment
+                        int indexDuplicate = 0;
+                        foreach (double number in frequencyList)
+                        {
+                            if (number == frequencyList[frequencyList.Count - 1])
+                            {
+                                indexDuplicate = frequencyList.IndexOf(number);
+                                if (indexDuplicate == frequencyList.Count - 1)
+                                {
+                                    indexDuplicate = 0;
+                                }
+                                break;
+                            }
+                        }
+
+                        if (indexDuplicate != 0)
+                        {
+                            frequencyList.RemoveRange(indexDuplicate - Convert.ToInt32(numFftsToCopy) + 1, Convert.ToInt32(numFftsToCopy));
+                            powerList.RemoveRange(indexDuplicate - Convert.ToInt32(numFftsToCopy) + 1, Convert.ToInt32(numFftsToCopy));
+                        }
+
+                        // end removing
+
+                    }
                 }
                 else
                 {
@@ -488,6 +512,7 @@ namespace AgilentN6841A
                         i * dataHeader.frequencyStep);
                 }
             }
+
             return false;
         }
 
