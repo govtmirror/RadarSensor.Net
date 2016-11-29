@@ -210,8 +210,12 @@ namespace AgilentN6841A
                     bool overload = true;
                     while (overload && attenList[i] <= MAX_ATTEN)
                     {
-                        DetectSegment(sweepParams, fftParams, powerList,
+                        err = DetectSegment(sweepParams, fftParams, powerList,
                             frequencyList, cf, numFftsToCopy, ref overload);
+                        if (err)
+                        {
+                            return true;
+                        }
                         if (overload)
                         {
                             dataMessage.overloadFlag = true;
@@ -223,8 +227,12 @@ namespace AgilentN6841A
                 else
                 {
                     bool overload = false;
-                    DetectSegment(sweepParams, fftParams, powerList,
+                    err = DetectSegment(sweepParams, fftParams, powerList,
                         frequencyList, cf, numFftsToCopy, ref overload);
+                    if (err)
+                    {
+                        return true;
+                    }
                     if (overload)
                     {
                         dataMessage.overloadFlag = true;

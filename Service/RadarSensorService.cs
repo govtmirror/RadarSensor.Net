@@ -18,7 +18,11 @@ namespace Service
 
         public const int SECONDS_IN_HOUR = 3600;
 
+        // thread that drives sensor and writes data 
         private Thread sensorThread;
+
+        // Used to cache any unhandled exception
+        private Exception asyncException;
 
         internal class TimedCount
         {
@@ -40,6 +44,15 @@ namespace Service
             this.ServiceName = "RadarSensorService";
             this.CanPauseAndContinue = true;
             this.CanStop = true;
+            AppDomain.CurrentDomain.UnhandledException += new
+                UnhandledExceptionEventHandler(UnhandledExceptionHandler);
+        }
+
+        public void UnhandledExceptionHandler(object sender, UnhandledExceptionEventArgs e)
+        {
+            // Cache the unhandled excpetion and begin a shutdown of the service
+            asyncException = e.ExceptionObject as Exception;
+            this.Stop();
         }
 
         public void OnDebug()
@@ -51,8 +64,9 @@ namespace Service
         {
             Utilites.LogMessage("Radar Sensor Service started");
             base.OnStart(args);
-            sensorThread = new Thread(this.MainThread);
+            sensorThread = new Thread(this.SensorThread);
             sensorThread.Name = "Radar sensor thread";
+            sensorThread.IsBackground = true;
             sensorThread.Start();
         }
 
@@ -60,12 +74,18 @@ namespace Service
         {
             Utilites.LogMessage("Radar Sensor Service stopped by the user");
             base.OnStop();
+            sensorThread.Join(60);
+            if (asyncException != null)
+            {
+                throw new InvalidOperationException("Unhandled exception in service",
+                    asyncException);
+            }
         }
 
         /// <summary>
         /// 
         /// </summary>
-        private void MainThread()
+        private void SensorThread()
         {
             // verify needed paths exists 
             if (!Directory.Exists(Constants.MESSAGE_FILES_DIR))
@@ -142,13 +162,14 @@ namespace Service
                     sysMessage.calibration.measurementParameters.dwellTime =
                         calParams.DwellTime;
 
+                    // if yFactorCall == null and error occured while performing cal
                     sensor.PerformCal(calParams, sysMessage, out yFactorCal);
                     if (yFactorCal == null)
                     {
                         Utilites.LogMessage("Error performing calibration, " +
                             "cal aborted");
-                        // do not write SysMessage
-                        continue;
+                        // unhandled exception event handle will catch exception
+                        throw new Exception("Error performing cal");
                     }
                     Utilites.WriteMessageToFile(sysMessage);
                     initialCalComplete = true;
@@ -193,7 +214,12 @@ namespace Service
                     dataMessage.measurementParameters.window =
                         sweepParams.Window;
 
-                    sensor.PerformMeasurement(sweepParams, dataMessage, yFactorCal);
+                    bool err = sensor.PerformMeasurement(sweepParams, 
+                        dataMessage, yFactorCal);
+                    if (err)
+                    {
+                        throw new Exception("Error performing measurement");
+                    }
 
                     numOfMeasurements++;
                     Utilites.WriteMessageToFile(dataMessage);
