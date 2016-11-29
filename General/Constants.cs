@@ -32,7 +32,7 @@ namespace General
             "1.0.16";
 
         private static string currentDir =
-    Directory.GetCurrentDirectory();
+    AppDomain.CurrentDomain.BaseDirectory;
 
         // files that will be deserealized into a class at runtime
         private static readonly string CONFIG = "config";
