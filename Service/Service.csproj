@@ -18,7 +18,7 @@
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
-    <OutputPath>..\bin\</OutputPath>
+    <OutputPath>..\bin\Debug\</OutputPath>
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
@@ -74,7 +74,9 @@
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
     <PostBuildEvent>if not exist "$(SolutionDir)bin\Release\Config" mkdir "$(SolutionDir)bin\Release\Config"
-xcopy /d "$(SolutionDir)bin\Config" "$(SolutionDir)bin\Release\Config"</PostBuildEvent>
+xcopy /d "$(SolutionDir)bin\Config" "$(SolutionDir)bin\Release\Config"
+if not exist "$(SolutionDir)bin\Debug\Config" mkdir "$(SolutionDir)bin\Debug\Config"
+xcopy /d "$(SolutionDir)bin\Config" "$(SolutionDir)bin\Debug\Config"</PostBuildEvent>
   </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
