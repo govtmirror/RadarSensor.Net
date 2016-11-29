@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
+	<Product Id="{3CC7C64A-D107-4930-A721-B94EDF1B434F}" 
+           Name="RadarSensor" 
+           Language="1033" 
+           Version="1.0.0.0" 
+           Manufacturer="DOC/NTIA/ITS.E" 
+           UpgradeCode="9d920e47-6b0f-42a6-93db-e2fd68be0869">
+    
+		<Package InstallerVersion="200" 
+             Compressed="yes" 
+             InstallScope="perMachine"/>
+
+    <MediaTemplate EmbedCab="yes"/>
+    
+    <Directory Id="TARGETDIR" Name="SourceDir">
+      <Directory Id="ProgramFilesFolder">
+        <Directory Id="INSTALLFOLDER" Name="RadarSensor" />
+      </Directory>
+    </Directory>
+    
+		<Feature Id="ProductFeature" Title="RadarSensor" 
+             ConfigurableDirectory="INSTALLFOLDER" Level="1">
+			<ComponentGroupRef Id="ProductComponents" />
+		</Feature>
+	</Product>
+</Wix>

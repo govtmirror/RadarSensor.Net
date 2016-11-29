@@ -1,0 +1,113 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
+    <Fragment>
+        <DirectoryRef Id="INSTALLFOLDER">
+            <Component Id="AgilentN6841A.exe" Guid="{3568DD63-8CBA-4F96-9D0E-29096B13D709}">
+                <File Id="AgilentN6841A.exe" KeyPath="yes" Source="$(var.SourceDir)\AgilentN6841A.exe" />
+            </Component>
+            <Component Id="AgilentN6841A.exe.config" Guid="{FDFB7D15-9BED-473D-B13D-107AAA487556}">
+                <File Id="AgilentN6841A.exe.config" KeyPath="yes" Source="$(var.SourceDir)\AgilentN6841A.exe.config" />
+            </Component>
+            <Component Id="AgilentN6841A.pdb" Guid="{4A66DD2F-0335-4EFC-98EC-BF722656E416}">
+                <File Id="AgilentN6841A.pdb" KeyPath="yes" Source="$(var.SourceDir)\AgilentN6841A.pdb" />
+            </Component>
+            <Component Id="General.exe" Guid="{C46FD9F4-AF9C-4D00-88AE-FFDD99A18B7D}">
+                <File Id="General.exe" KeyPath="yes" Source="$(var.SourceDir)\General.exe" />
+            </Component>
+            <Component Id="General.exe.config" Guid="{7276CE3F-DBB8-4565-AA2C-3DEAE81CBBE0}">
+                <File Id="General.exe.config" KeyPath="yes" Source="$(var.SourceDir)\General.exe.config" />
+            </Component>
+            <Component Id="General.pdb" Guid="{9941FDF8-F920-4332-A02F-6CA5F38E61DE}">
+                <File Id="General.pdb" KeyPath="yes" Source="$(var.SourceDir)\General.pdb" />
+            </Component>
+            <Component Id="Newtonsoft.Json.dll" Guid="{987C910A-933E-48A5-8EBD-7A59F19384C3}">
+                <File Id="Newtonsoft.Json.dll" KeyPath="yes" Source="$(var.SourceDir)\Newtonsoft.Json.dll" />
+            </Component>
+            <Component Id="Newtonsoft.Json.xml" Guid="{0C8A08BA-325A-4ACC-A65A-662E268E88F4}">
+                <File Id="Newtonsoft.Json.xml" KeyPath="yes" Source="$(var.SourceDir)\Newtonsoft.Json.xml" />
+            </Component>
+            <Component Id="Preselctor.exe" Guid="{833A8D6C-88AB-4320-B2DC-8C75FF5F49CD}">
+                <File Id="Preselctor.exe" KeyPath="yes" Source="$(var.SourceDir)\Preselctor.exe" />
+            </Component>
+            <Component Id="Preselctor.exe.config" Guid="{1BBF17AD-74B5-498B-96CC-488F76D90E19}">
+                <File Id="Preselctor.exe.config" KeyPath="yes" Source="$(var.SourceDir)\Preselctor.exe.config" />
+            </Component>
+            <Component Id="Preselctor.pdb" Guid="{87D9528B-1950-44AF-AC90-A03AD1171B5C}">
+                <File Id="Preselctor.pdb" KeyPath="yes" Source="$(var.SourceDir)\Preselctor.pdb" />
+            </Component>
+            <Component Id="Service.exe" Guid="{ABEE9BC9-3E3B-42E8-88B1-F06FD0D2C69A}">
+                <File Id="Service.exe" KeyPath="yes" Source="$(var.SourceDir)\Service.exe" />
+            </Component>
+            <Component Id="Service.exe.config" Guid="{DC3397C0-53E0-4D34-AC49-4C6B953E549E}">
+                <File Id="Service.exe.config" KeyPath="yes" Source="$(var.SourceDir)\Service.exe.config" />
+            </Component>
+            <Component Id="Service.pdb" Guid="{15C6737A-DD94-498C-B3AC-605FBCAAE150}">
+                <File Id="Service.pdb" KeyPath="yes" Source="$(var.SourceDir)\Service.pdb" />
+            </Component>
+            <Component Id="Service.vshost.exe" Guid="{D754BF48-4690-4755-9B0C-BB5A6C66F90F}">
+                <File Id="Service.vshost.exe" KeyPath="yes" Source="$(var.SourceDir)\Service.vshost.exe" />
+            </Component>
+            <Component Id="Service.vshost.exe.config" Guid="{48C2A12B-8D34-4C4F-8BD1-36CFDC3C3CB9}">
+                <File Id="Service.vshost.exe.config" KeyPath="yes" Source="$(var.SourceDir)\Service.vshost.exe.config" />
+            </Component>
+            <Component Id="Service.vshost.exe.manifest" Guid="{26D05087-C3CA-4130-AA50-CD0E517C3F21}">
+                <File Id="Service.vshost.exe.manifest" KeyPath="yes" Source="$(var.SourceDir)\Service.vshost.exe.manifest" />
+            </Component>
+            <Directory Id="Config" Name="Config">
+                <Component Id="Antenna.json" Guid="{8D156C3A-FCDA-4903-9E2A-831537478AD9}">
+                    <File Id="Antenna.json" KeyPath="yes" Source="$(var.SourceDir)\Config\Antenna.json" />
+                </Component>
+                <Component Id="config.json" Guid="{958DED9A-64C8-4B8F-82A7-A86D1F53E38D}">
+                    <File Id="config.json" KeyPath="yes" Source="$(var.SourceDir)\Config\config.json" />
+                </Component>
+                <Component Id="CotsSensor.json" Guid="{C74BF113-4433-4425-864D-75F9D968067A}">
+                    <File Id="CotsSensor.json" KeyPath="yes" Source="$(var.SourceDir)\Config\CotsSensor.json" />
+                </Component>
+                <Component Id="LocMessage.json" Guid="{91B6663A-6727-4D64-B3D4-536CFF747881}">
+                    <File Id="LocMessage.json" KeyPath="yes" Source="$(var.SourceDir)\Config\LocMessage.json" />
+                </Component>
+                <Component Id="Preselector.json" Guid="{D18064B0-853A-4B79-8E17-94DD06AB165C}">
+                    <File Id="Preselector.json" KeyPath="yes" Source="$(var.SourceDir)\Config\Preselector.json" />
+                </Component>
+                <Component Id="spn43Cal.json" Guid="{57A349F7-DE31-43E5-9963-53AA3823D502}">
+                    <File Id="spn43Cal.json" KeyPath="yes" Source="$(var.SourceDir)\Config\spn43Cal.json" />
+                </Component>
+                <Component Id="spn43Sweep.json" Guid="{19422114-FF37-45BE-BD7C-FB49BD3BFF73}">
+                    <File Id="spn43Sweep.json" KeyPath="yes" Source="$(var.SourceDir)\Config\spn43Sweep.json" />
+                </Component>
+                <Component Id="SysMessage.json" Guid="{A11F97A3-DBE4-42F3-9C03-77CCEE03C84A}">
+                    <File Id="SysMessage.json" KeyPath="yes" Source="$(var.SourceDir)\Config\SysMessage.json" />
+                </Component>
+            </Directory>
+        </DirectoryRef>
+    </Fragment>
+    <Fragment>
+        <ComponentGroup Id="ProductComponents">
+            <ComponentRef Id="AgilentN6841A.exe" />
+            <ComponentRef Id="AgilentN6841A.exe.config" />
+            <ComponentRef Id="AgilentN6841A.pdb" />
+            <ComponentRef Id="General.exe" />
+            <ComponentRef Id="General.exe.config" />
+            <ComponentRef Id="General.pdb" />
+            <ComponentRef Id="Newtonsoft.Json.dll" />
+            <ComponentRef Id="Newtonsoft.Json.xml" />
+            <ComponentRef Id="Preselctor.exe" />
+            <ComponentRef Id="Preselctor.exe.config" />
+            <ComponentRef Id="Preselctor.pdb" />
+            <ComponentRef Id="Service.exe" />
+            <ComponentRef Id="Service.exe.config" />
+            <ComponentRef Id="Service.pdb" />
+            <ComponentRef Id="Service.vshost.exe" />
+            <ComponentRef Id="Service.vshost.exe.config" />
+            <ComponentRef Id="Service.vshost.exe.manifest" />
+            <ComponentRef Id="Antenna.json" />
+            <ComponentRef Id="config.json" />
+            <ComponentRef Id="CotsSensor.json" />
+            <ComponentRef Id="LocMessage.json" />
+            <ComponentRef Id="Preselector.json" />
+            <ComponentRef Id="spn43Cal.json" />
+            <ComponentRef Id="spn43Sweep.json" />
+            <ComponentRef Id="SysMessage.json" />
+        </ComponentGroup>
+    </Fragment>
+</Wix>
