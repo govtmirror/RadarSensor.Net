@@ -74,7 +74,7 @@
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
     <PostBuildEvent>if not exist "$(SolutionDir)bin\Release\Config" mkdir "$(SolutionDir)bin\Release\Config"
-xcopy "$(SolutionDir)bin\Config" "$(SolutionDir)bin\Release\Config"</PostBuildEvent>
+xcopy /d "$(SolutionDir)bin\Config" "$(SolutionDir)bin\Release\Config"</PostBuildEvent>
   </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
