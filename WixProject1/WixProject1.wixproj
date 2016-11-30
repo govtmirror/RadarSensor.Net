@@ -14,7 +14,7 @@
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|x86' ">
     <OutputPath>bin\$(Configuration)\</OutputPath>
     <IntermediateOutputPath>obj\$(Configuration)\</IntermediateOutputPath>
-    <DefineConstants>Debug</DefineConstants>
+    <DefineConstants>Debug;SourceDir=$(SolutionDir)bin\Debug</DefineConstants>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|x86' ">
     <OutputPath>bin\$(Configuration)\</OutputPath>
@@ -27,7 +27,8 @@
   </ItemGroup>
   <Import Project="$(WixTargetsPath)" />
   <PropertyGroup>
-    <PreBuildEvent>call "$(WIX)\bin\heat.exe" dir "$(SolutionDir)bin\Release" -dr INSTALLFOLDER -cg ProductComponents -gg -sfrag -srd -suid  -var var.SourceDir -out "$(ProjectDir)\HeatFile.wxs"</PreBuildEvent>
+    <PreBuildEvent>call "$(WIX)\bin\heat.exe" dir "$(SolutionDir)bin\Debug" -dr INSTALLFOLDER -cg ProductComponents -gg -sfrag -srd -suid  -var var.SourceDir -out "$(ProjectDir)HeatFile.wxs"
+"c:/Anaconda3/python.exe" $(SolutionDir)postHarvest.py "debug"</PreBuildEvent>
   </PropertyGroup>
   <!--
 	To modify your build process, add your task inside one of the targets below and uncomment it.

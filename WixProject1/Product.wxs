@@ -21,7 +21,30 @@
     
 		<Feature Id="ProductFeature" Title="RadarSensor" 
              ConfigurableDirectory="INSTALLFOLDER" Level="1">
-			<ComponentGroupRef Id="ProductComponents" />
+			<ComponentGroupRef Id="ProductComponents"/>
+      <ComponentRef Id="cmpService"/>
 		</Feature>
+    
+      <DirectoryRef Id="INSTALLFOLDER">
+        <Component Id="cmpService"
+                   Guid="{9F51F30F-6578-4CC1-9A46-24E885E617BA}">
+          <File Id="Service"
+                Name="Service.exe"
+                KeyPath="yes"
+                Source="$(var.SourceDir)\Service.exe"/>
+        <ServiceInstall Id="ServiceInstaller"
+                        Name="Service.exe"
+                        DisplayName="Radar Sensor Service"
+                        Start="auto"
+                        ErrorControl="normal"
+                        Type="ownProcess"
+                        Account="NT AUTHORITY\LocalService"/>
+        <ServiceControl Id="StartService" 
+                        Name="Service.exe" 
+                        Remove="uninstall"
+                        Start="install"
+                        Wait="yes"/>
+      </Component>
+    </DirectoryRef>
 	</Product>
 </Wix>
