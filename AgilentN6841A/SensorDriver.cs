@@ -618,7 +618,7 @@ namespace AgilentN6841A
 
         public static void Main(String[] args)
         {
-            
+            SensorProcess.SensorThread();
         }
     }
 }
