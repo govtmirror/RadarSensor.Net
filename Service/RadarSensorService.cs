@@ -1,6 +1,4 @@
-﻿using AgilentN6841A;
-using System.ServiceProcess;
-using System.Threading;
+﻿using System.ServiceProcess;
 using System;
 using General;
 using System.IO;
@@ -20,6 +18,7 @@ namespace Service
             this.ServiceName = "RadarSensorService";
             this.CanPauseAndContinue = true;
             this.CanStop = true;
+            StartSensorProcess();
         }
 
         public void OnDebug()
@@ -33,17 +32,9 @@ namespace Service
             base.OnStart(args);
             // Set up a timer to trigger every minute.
             System.Timers.Timer timer = new System.Timers.Timer();
-            timer.Interval = 60000; // 60 seconds
+            timer.Interval = 600000; // 10 minutes
             timer.Elapsed += new System.Timers.ElapsedEventHandler(this.OnTimer);
             timer.Start();
-
-            string exePath = 
-                Path.Combine(AppDomain.CurrentDomain.BaseDirectory,
-                "AgilentN6841A.exe");
-            ProcessStartInfo info = new ProcessStartInfo(exePath);
-            info.CreateNoWindow = true;
-            info.UseShellExecute = false;
-            Process.Start(info);
         }
 
         protected override void OnStop()
@@ -52,10 +43,26 @@ namespace Service
             base.OnStop();
         }
 
-        public void OnTimer(object sender, System.Timers.ElapsedEventArgs args)
+        private void OnTimer(object sender, System.Timers.ElapsedEventArgs args)
         {
             // TODO: Insert monitoring activities here.
-            Utilites.LogMessage("Testing timer in service");
+            Process[] processList =
+                Process.GetProcessesByName(Constants.SENSOR_PROCESS_NAME);
+            if (processList.Length == 0)
+            {
+                StartSensorProcess();
+            }
+        }
+
+        private void StartSensorProcess()
+        {
+            string exePath =
+                Path.Combine(AppDomain.CurrentDomain.BaseDirectory,
+                Constants.SENSOR_PROCESS_NAME + ".exe");
+            ProcessStartInfo info = new ProcessStartInfo(exePath);
+            info.CreateNoWindow = true;
+            info.UseShellExecute = false;
+            Process.Start(info);
         }
 
         /// <summary>

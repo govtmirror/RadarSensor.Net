@@ -19,6 +19,7 @@ namespace General
         public static readonly string BYTE_ORDER = "network";
         public static readonly string COMPRESSION = "none";
         public static readonly string DATA_TYPE = "ASCII";
+        public static readonly string SENSOR_PROCESS_NAME = "AgilentN6841A";
 
         // path to store Messages as JSON file
         public static readonly string MESSAGE_FILES_DIR

@@ -28,7 +28,7 @@ namespace AgilentN6841A
         /// <summary>
         /// 
         /// </summary>
-        public static void SensorThread()
+        public static void MainLoop()
         {
             // verify needed paths exists 
             if (!Directory.Exists(Constants.MESSAGE_FILES_DIR))
