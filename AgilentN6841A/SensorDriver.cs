@@ -240,12 +240,12 @@ namespace AgilentN6841A
 
                         if (indexDuplicate != 0)
                         {
-                            frequencyList.RemoveRange(indexDuplicate - Convert.ToInt32(numFftsToCopy) + 1, Convert.ToInt32(numFftsToCopy));
-                            powerList.RemoveRange(indexDuplicate - Convert.ToInt32(numFftsToCopy) + 1, Convert.ToInt32(numFftsToCopy));
+                            frequencyList.RemoveRange(indexDuplicate - 
+                                Convert.ToInt32(numFftsToCopy) + 1, Convert.ToInt32(numFftsToCopy));
+                            powerList.RemoveRange(indexDuplicate - 
+                                Convert.ToInt32(numFftsToCopy) + 1, Convert.ToInt32(numFftsToCopy));
                         }
-
                         // end removing
-
                     }
                 }
                 else
@@ -422,6 +422,12 @@ namespace AgilentN6841A
                 ref sweepParams, ref fs, ref flowControl, null);
             if (SensorError(err, "salStartSweep"))
             {
+                if (err == AgSalLib.SalError.SAL_ERR_SENSOR_NOT_CONNECTED)
+                {
+                    // lost connection to sensor, kill the process
+                    // service will start it again
+                    Environment.Exit(1);
+                }
                 return true;
             }
 
@@ -495,6 +501,11 @@ namespace AgilentN6841A
 
                     case AgSalLib.SalError.SAL_ERR_NO_DATA_AVAILABLE:
                         // data is not available yet ... 
+                        break;
+                    case AgSalLib.SalError.SAL_ERR_SENSOR_NOT_CONNECTED:
+                        // lost connection to sensor, kill the process
+                        // service will start it again
+                        Environment.Exit(1);
                         break;
                     default:
                         SensorError(err, "salGetSegmentData");

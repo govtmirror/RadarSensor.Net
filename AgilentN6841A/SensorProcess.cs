@@ -111,8 +111,7 @@ namespace AgilentN6841A
                     {
                         Utilites.LogMessage("Error performing calibration, " +
                             "cal aborted");
-                        // unhandled exception event handle will catch exception
-                        throw new Exception("Error performing cal");
+                        continue;
                     }
                     Utilites.WriteMessageToFile(sysMessage);
                     initialCalComplete = true;
