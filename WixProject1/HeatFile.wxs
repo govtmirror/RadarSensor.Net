@@ -2,86 +2,86 @@
 <Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
     <Fragment>
         <DirectoryRef Id="INSTALLFOLDER">
-            <Component Id="AgilentN6841A.exe" Guid="{142BD011-8A55-4A1D-80AA-79A15200E19F}">
+            <Component Id="AgilentN6841A.exe" Guid="{9BF06E23-85EF-44BB-9369-67FA245AE967}">
                 <File Id="AgilentN6841A.exe" KeyPath="yes" Source="$(var.SourceDir)\AgilentN6841A.exe" />
             </Component>
-            <Component Id="AgilentN6841A.exe.config" Guid="{9EA7390A-252B-4F54-B6A5-20B12B72AEB2}">
+            <Component Id="AgilentN6841A.exe.config" Guid="{05BE86F3-5296-4907-A530-CA53B0786082}">
                 <File Id="AgilentN6841A.exe.config" KeyPath="yes" Source="$(var.SourceDir)\AgilentN6841A.exe.config" />
             </Component>
-            <Component Id="AgilentN6841A.pdb" Guid="{0801A240-9AE6-4FFD-86D6-55F9A4B27612}">
+            <Component Id="AgilentN6841A.pdb" Guid="{B39B6695-6B5A-4A01-AAC9-F70FB318B55C}">
                 <File Id="AgilentN6841A.pdb" KeyPath="yes" Source="$(var.SourceDir)\AgilentN6841A.pdb" />
             </Component>
-            <Component Id="General.exe" Guid="{BAA0DB6E-C96E-4B87-89AA-39FB186AED4F}">
+            <Component Id="General.exe" Guid="{0D4F1361-FCA6-4C4C-B1E0-E697C7F9F72A}">
                 <File Id="General.exe" KeyPath="yes" Source="$(var.SourceDir)\General.exe" />
             </Component>
-            <Component Id="General.exe.config" Guid="{DBF222CF-150F-45FD-8FB9-63B76D425C1A}">
+            <Component Id="General.exe.config" Guid="{66F2FF30-8D9F-464C-AB93-2F5A478EB2AE}">
                 <File Id="General.exe.config" KeyPath="yes" Source="$(var.SourceDir)\General.exe.config" />
             </Component>
-            <Component Id="General.pdb" Guid="{BFB05976-A13F-413F-9B17-A5D159BFFC23}">
+            <Component Id="General.pdb" Guid="{79790C50-AFAA-4FFF-BE62-DEF7EDFD619D}">
                 <File Id="General.pdb" KeyPath="yes" Source="$(var.SourceDir)\General.pdb" />
             </Component>
-            <Component Id="Microsoft.VisualStudio.QualityTools.UnitTestFramework.dll" Guid="{1E787535-9D81-4C75-80AC-F3A0261A7A8C}">
+            <Component Id="Microsoft.VisualStudio.QualityTools.UnitTestFramework.dll" Guid="{D892B4FD-84E2-4775-A72B-5A64A500C9C5}">
                 <File Id="Microsoft.VisualStudio.QualityTools.UnitTestFramework.dll" KeyPath="yes" Source="$(var.SourceDir)\Microsoft.VisualStudio.QualityTools.UnitTestFramework.dll" />
             </Component>
-            <Component Id="Newtonsoft.Json.dll" Guid="{96D77472-E244-49BB-8F09-2F7769FB52FD}">
+            <Component Id="Newtonsoft.Json.dll" Guid="{2BA7192E-E711-4FAB-A21A-797DA0C5180E}">
                 <File Id="Newtonsoft.Json.dll" KeyPath="yes" Source="$(var.SourceDir)\Newtonsoft.Json.dll" />
             </Component>
-            <Component Id="Newtonsoft.Json.xml" Guid="{DC388A88-B586-4CD0-84DF-28B551DB0036}">
+            <Component Id="Newtonsoft.Json.xml" Guid="{4900196C-7A89-4F03-BCBD-A38FFC726C2C}">
                 <File Id="Newtonsoft.Json.xml" KeyPath="yes" Source="$(var.SourceDir)\Newtonsoft.Json.xml" />
             </Component>
-            <Component Id="Preselctor.exe" Guid="{8F2113A5-71B7-453F-AF58-B8E1E0BA524E}">
+            <Component Id="Preselctor.exe" Guid="{26713752-1D29-4828-AA5E-33204F56BBFC}">
                 <File Id="Preselctor.exe" KeyPath="yes" Source="$(var.SourceDir)\Preselctor.exe" />
             </Component>
-            <Component Id="Preselctor.exe.config" Guid="{91720F88-B968-4F2F-978D-1331E15B25E1}">
+            <Component Id="Preselctor.exe.config" Guid="{0548AF1A-82E7-4318-BED4-85B610C17418}">
                 <File Id="Preselctor.exe.config" KeyPath="yes" Source="$(var.SourceDir)\Preselctor.exe.config" />
             </Component>
-            <Component Id="Preselctor.pdb" Guid="{90715B1F-95C6-4BBE-B0E4-4A7879A8DD55}">
+            <Component Id="Preselctor.pdb" Guid="{B944D4A4-43AA-457C-9CB2-5F76BE80B90F}">
                 <File Id="Preselctor.pdb" KeyPath="yes" Source="$(var.SourceDir)\Preselctor.pdb" />
             </Component>
-            <Component Id="Service.exe.config" Guid="{A7417456-B456-4868-9D60-2F4FB5EEC613}">
+            <Component Id="Service.exe.config" Guid="{0DF9CB42-2FFE-4BE6-9EE4-218349D67456}">
                 <File Id="Service.exe.config" KeyPath="yes" Source="$(var.SourceDir)\Service.exe.config" />
             </Component>
-            <Component Id="Service.pdb" Guid="{D27D2ADC-762B-4B67-AE69-6B72B2EDF0EC}">
+            <Component Id="Service.pdb" Guid="{04E904F0-BE31-47DC-AE7B-15ACD6B14A7B}">
                 <File Id="Service.pdb" KeyPath="yes" Source="$(var.SourceDir)\Service.pdb" />
             </Component>
-            <Component Id="Service.vshost.exe" Guid="{B213363E-F4EE-44B5-A10F-4B6FB1A3B148}">
+            <Component Id="Service.vshost.exe" Guid="{4FE1C05D-597D-45CA-B4E5-9724E7DCF69F}">
                 <File Id="Service.vshost.exe" KeyPath="yes" Source="$(var.SourceDir)\Service.vshost.exe" />
             </Component>
-            <Component Id="Service.vshost.exe.config" Guid="{A74522CD-F939-4540-BB2D-FAECEE064CE1}">
+            <Component Id="Service.vshost.exe.config" Guid="{4FE7A519-DCA8-47A4-8ECB-CA039FE0B3A6}">
                 <File Id="Service.vshost.exe.config" KeyPath="yes" Source="$(var.SourceDir)\Service.vshost.exe.config" />
             </Component>
-            <Component Id="Service.vshost.exe.manifest" Guid="{27B2DE8F-9E27-47F0-8C38-630EE263B59B}">
+            <Component Id="Service.vshost.exe.manifest" Guid="{99034F79-4EE4-478C-ABF7-3F0B9541C63B}">
                 <File Id="Service.vshost.exe.manifest" KeyPath="yes" Source="$(var.SourceDir)\Service.vshost.exe.manifest" />
             </Component>
-            <Component Id="UnitTests.dll" Guid="{D44E6CE0-FA91-4CFD-85E8-630205349CC0}">
+            <Component Id="UnitTests.dll" Guid="{7C4071FC-FD48-4368-B53E-9A5B768DDE44}">
                 <File Id="UnitTests.dll" KeyPath="yes" Source="$(var.SourceDir)\UnitTests.dll" />
             </Component>
-            <Component Id="UnitTests.pdb" Guid="{AE7B6A2E-7EB9-495D-A1F3-085A47A95DD5}">
+            <Component Id="UnitTests.pdb" Guid="{74CB7BE2-9789-48AA-BCEA-7D3D55F2A0B3}">
                 <File Id="UnitTests.pdb" KeyPath="yes" Source="$(var.SourceDir)\UnitTests.pdb" />
             </Component>
             <Directory Id="config" Name="config">
-                <Component Id="Antenna.json" Guid="{51641746-3528-430C-8A86-888B11566C88}">
+                <Component Id="Antenna.json" Guid="{FDCD8EDF-8360-4B56-9F44-27845828C4B3}">
                     <File Id="Antenna.json" KeyPath="yes" Source="$(var.SourceDir)\config\Antenna.json" />
                 </Component>
-                <Component Id="config.json" Guid="{B3384C36-9595-43F1-85AC-11DA72F5EDDB}">
+                <Component Id="config.json" Guid="{39A12BB8-3937-442C-86AD-A855E3A4E7FA}">
                     <File Id="config.json" KeyPath="yes" Source="$(var.SourceDir)\config\config.json" />
                 </Component>
-                <Component Id="CotsSensor.json" Guid="{80134A74-A89D-4D1E-A95D-2384AD4A4EF8}">
+                <Component Id="CotsSensor.json" Guid="{63DB16E0-FA56-495D-9281-F2CEA783E73F}">
                     <File Id="CotsSensor.json" KeyPath="yes" Source="$(var.SourceDir)\config\CotsSensor.json" />
                 </Component>
-                <Component Id="LocMessage.json" Guid="{AFF7D064-9D31-40B3-A69C-D56B10462855}">
+                <Component Id="LocMessage.json" Guid="{990DCA94-481E-4307-BC95-5D7B7F362D53}">
                     <File Id="LocMessage.json" KeyPath="yes" Source="$(var.SourceDir)\config\LocMessage.json" />
                 </Component>
-                <Component Id="Preselector.json" Guid="{E6112D5E-4C3F-4961-89C0-ABF826342067}">
+                <Component Id="Preselector.json" Guid="{A4934B1A-D6BB-4F10-B8D6-05316F052894}">
                     <File Id="Preselector.json" KeyPath="yes" Source="$(var.SourceDir)\config\Preselector.json" />
                 </Component>
-                <Component Id="spn43Cal.json" Guid="{470CA0BD-27F4-4EEF-B34C-9D0A11A52717}">
+                <Component Id="spn43Cal.json" Guid="{466C3526-84E4-4FBB-9C43-F6F460240BF5}">
                     <File Id="spn43Cal.json" KeyPath="yes" Source="$(var.SourceDir)\config\spn43Cal.json" />
                 </Component>
-                <Component Id="spn43Sweep.json" Guid="{0E14F870-00BE-4D8D-8432-62BBA6FEEFE9}">
+                <Component Id="spn43Sweep.json" Guid="{109BCB6E-E746-4BB2-96BE-6F036D678D21}">
                     <File Id="spn43Sweep.json" KeyPath="yes" Source="$(var.SourceDir)\config\spn43Sweep.json" />
                 </Component>
-                <Component Id="SysMessage.json" Guid="{21B9280A-7ED3-486A-BCD1-56D24ED5EBAE}">
+                <Component Id="SysMessage.json" Guid="{167464EE-D283-40B7-8B93-3764B4825CA5}">
                     <File Id="SysMessage.json" KeyPath="yes" Source="$(var.SourceDir)\config\SysMessage.json" />
                 </Component>
             </Directory>
