@@ -10,14 +10,14 @@ namespace SensorFrontEnd
 {
     public class Preselector
     {
-        private X300 webRelay;
+        private WebRelay webRelay;
         /// <summary>
         /// excess noiose ratio of noise diode in Preselector
         /// </summary>
 
         public Preselector(string ip)
         {
-            webRelay = new X300(ip);
+            webRelay = new WebRelay(ip);
         }
 
         /// <summary>
@@ -88,13 +88,16 @@ namespace SensorFrontEnd
         }
     }
 
-    internal class X300
+    /// <summary>
+    /// controlls web relay
+    /// </summary>
+    internal class WebRelay
     {
         private string baseUrl;
         private string ctlUrl;
         private int port = 80; // default port for X300
 
-        internal X300(string baseURL)
+        internal WebRelay(string baseURL)
         {
             Regex ipMatcher = new Regex("^(?:[0-9]{1,3}\\.){3}[0-9]{1,3}$");
 
@@ -182,7 +185,7 @@ namespace SensorFrontEnd
 
         public static void Main(string[] args)
         {
-            X300 webRelay = new X300("10.6.6.22");
+            WebRelay webRelay = new WebRelay("10.6.6.22");
 
             webRelay.SetRelayState(4, 1);
             Thread.Sleep(200);
